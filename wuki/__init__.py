@@ -2,8 +2,25 @@
 
 # TODO
 # - general
-#   - implement logic for all pieces
-#   - coordiantes to sqaure color
+#   - this todo list into README.md
+#   - use exceptions to handle capturing, promotion, castling, check, checkmate?
+#   - should AbstractPiece.possible_moves() check for opponent pieces or one layer above?
+#   - PiecePosition/Square
+#       - __add__, __sub__, with tuples
+#       - .diagonals(), .orthogonals() etc
+#       - automatic bounds check
+#       - to/from python/chess coordinates
+#       - color
+#       - rows/cols -> ranks/files https://www.dummies.com/games/chess/naming-ranks-and-files-in-chess/
+#   - separate files
+#       - Game, PlayerColor -> game.py
+#       - Board, PiecePosition/Sqaure -> board.py
+#       - Piece, AbstractPiece, King, Queen, ... -> piece.py
+#       - AI into own file and class, gets Game, returns Game/move string
+# - rules
+#   - en passent
+#   - pawn promotion
+#   - castling (add .touched attribute to Piece(), also simplifies pawn initial two square movement)
 # - parse game file
 #   - setup initial board 
 #   - store all pieces and their positions (build index)
@@ -13,20 +30,37 @@
 # - find next move
 #   - go through all own pieces and generate list of all possible moves and board positions
 #       - remove moves that land on pieces that are on the board from the list returned by Piece.possible_moves()
+#       - add castling if possible (goes in Board())
+#       - handle pawn promotion (goes in Piece() and Pawn()?
+#           .move_to() in Piece() calls self.piece.move_to()
+#            AbstractPiece.move_to() just pass in other piece types, raises PawnPromotionException
 #   - lookahead
 #   - evaluation function for each board position
-#       - check
-#       - checkmate
-#       - capturing 
-#       - pawn promotion
+#       - implement each as own function, sum total score,
+#       - allow black/whitelist for strategies
+#       - allow to pass list of custom strategy functions
+#           - check
+#           - checkmate
+#           - capturing
+#           - pawn promotion
+#           - double pawns
+#           - attacks
+#           - cover
 # - visualization
 #   - unicode for TUI
 #   - matplotlib for pdf game output
+# - package
+#   - sphinx docs
+#   - automated tests
+#   - actual python package structure + executables
+#       - helpers.py -> common.py
+#       - __init__ only contains loading code, separate program from library
+#       - dependencies, installer
 
 import re
 
 import pieces
-from helpers import *
+from helpers import BOARD_LEN, White, Black, coord, square_color
 
 class Game:
     def __init__(self, moves):
@@ -36,10 +70,10 @@ class Game:
         """
         self.moves = moves
         # TODO figure out from game state
-        self.own_color = WHITE
+        self.own_color = White
 
         initial_pieces = []
-        for color, row, direction in zip([WHITE, BLACK], [1, 8], [+1, -1]):
+        for color, row, direction in zip([White, Black], [1, 8], [+1, -1]):
             initial_pieces.extend([
                 Piece(pieces.Rook(),   color, coord('a', row)),
                 Piece(pieces.Knight(), color, coord('b', row)),
@@ -65,14 +99,13 @@ class Game:
         self.boards[-1].print(unicode)
 
 
-
 class Piece:
     """Instantiation of general piece type on the board"""
 
     def __init__(self, piece, color, position):
         self.name = piece.name
         self.color = color
-        self.letter = piece.letter.upper() if color is WHITE else piece.letter.lower()
+        self.letter = piece.letter.upper() if color is White else piece.letter.lower()
         self.symbol = piece.symbol[color]
         self._piece_moves = piece.possible_moves
         self.position = position
@@ -81,7 +114,7 @@ class Piece:
         return f"{self.letter}{''.join([str(x) for x in _square(self.position)])}"
 
     def __repr__(self):
-        return f"<{self.name} color={_color_str(self.color)} position={self.position}>"
+        return f"<{self.name} color={self.color} position={self.position}>"
 
     def possible_moves(self, position=None):
         if position:
@@ -89,8 +122,14 @@ class Piece:
         else:
             return self._piece_moves(self.position)
 
+
 class Board:
     """Stores a board position"""
+    # TODO implement self.__getitem__ for self.index lookup https://docs.python.org/3/reference/datamodel.html#object.__getitem__
+    # TODO implement __contains__ for positions (piece @ position) and pieces (kind of piece still on board?)
+    # TODO implement __iter__ over all pieces
+    # TODO implement iterator over all squares
+
     def __init__(self, pieces):
         """Build the board from a list of pieces
 
@@ -114,7 +153,8 @@ class Board:
 
         """
         # TODO
-        # :param inverted: invert colors for unicode (useful for white-on-black terminals)
+        # - :param inverted: invert colors for unicode (useful for White-on-Black terminals)
+        # - for interactive mode, print up-side-down
 
         print('  abcdefgh')
         for y in reversed(range(BOARD_LEN)):
@@ -128,13 +168,12 @@ class Board:
                         symbol = self.index[pos].letter
                 else:
                     if unicode:
-                        symbol = '█' if square_color(pos) is BLACK else ' '
+                        symbol = '█' if square_color(pos) is Black else ' '
                     else:
-                        symbol = '#' if square_color(pos) is BLACK else ' '
+                        symbol = '#' if square_color(pos) is Black else ' '
                 print(symbol, end='')
             print('', y+1)
         print('  abcdefgh')
-
 
 
 if __name__ == '__main__':
@@ -150,7 +189,7 @@ if __name__ == '__main__':
     #parser.add_argument('-i', '--interactive', action='store_true',
     #        help='Take opponent moves for STDIN')
     #parser.add_argument('-I', '--inverted-colors', action='store_true',
-    #        help='Print symbols in inverted colors for white-on-black terminals')
+    #        help='Print symbols in inverted colors for White-on-Black terminals')
     parser.add_argument('-a', '--ascii', action='store_true',
             help='Use ascii characters and letters instead of unicode chess symbols')
     args = parser.parse_args()
