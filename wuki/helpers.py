@@ -1,4 +1,3 @@
-
 BOARD_LEN = 8
 
 class PlayerColor:
@@ -49,7 +48,7 @@ def square(position):
 
 def square_color(position):
     """Returns the color of a square on the board"""
-    return (position[0]+1)%2 ^ position[1]%2
+    return PlayerColor((position[0]+1)%2 ^ position[1]%2)
 
 def diagonals(position):
     """Gives all diagonally connected positions (including :param position:)"""

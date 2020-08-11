@@ -1,4 +1,28 @@
-from helpers import White, Black, within_board, diagonals, orthogonals, square
+from .helpers import White, Black, within_board, diagonals, orthogonals, square
+
+class Piece:
+    """Instantiation of general piece type on the board"""
+
+    def __init__(self, piece, color, position):
+        self.name = piece.name
+        self.color = color
+        self.letter = piece.letter.upper() if color is White else piece.letter.lower()
+        self.symbol = piece.symbol[color]
+        self._piece_moves = piece.possible_moves
+        self.position = position
+
+    def __str__(self):
+        return f"{self.letter}{''.join([str(x) for x in _square(self.position)])}"
+
+    def __repr__(self):
+        return f"<{self.name} color={self.color} position={self.position}>"
+
+    def possible_moves(self, position=None):
+        if position:
+            return self._piece_moves(position)
+        else:
+            return self._piece_moves(self.position)
+
 
 class AbstractPiece:
     """General type of a piece"""
