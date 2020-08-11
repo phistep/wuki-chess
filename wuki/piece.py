@@ -60,7 +60,7 @@ class King(AbstractPiece):
             (position[0]+1, position[1]-1),
             (position[0]-1, position[1]-1),
         ]
-        moves = list(filter(within_board, moves))
+        moves = set(filter(within_board, moves))
         return moves
 
 

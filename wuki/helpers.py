@@ -20,7 +20,7 @@ class PlayerColor:
 
     def __invert__(self):
         """ ~ operator, returns opposite color"""
-        return PieceColor(1-self.color)
+        return PlayerColor(1-self.color)
 
     def __eq__(self, other):
         return self.color == other.color
