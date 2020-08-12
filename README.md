@@ -3,16 +3,8 @@ _a toy chess engine_
 
 ## TODO
 - general
-	- this todo list into README.md
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
 	- should `AbstractPiece.possible_moves()` check for opponent pieces or one layer above?
-	- `PiecePosition`/`Square`
-		- `__add__`, `__sub__`, with tuples
-		- `.diagonals()`, `.orthogonals()` etc
-		- automatic bounds check
-		- to/from python/chess coordinates
-		- color
-		- rows/cols -> ranks/files https://www.dummies.com/games/chess/naming-ranks-and-files-in-chess/
 	- rules
 		- en passent
 		- pawn promotion

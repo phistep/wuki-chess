@@ -1,8 +1,7 @@
 import re
 
 from . import piece
-from .board import Board
-from .helpers import BOARD_LEN, White, Black, coord
+from .board import White, Black, Square, Board
 
 class Game:
     def __init__(self, moves):
@@ -17,16 +16,16 @@ class Game:
         initial_pieces = []
         for color, row, direction in zip([White, Black], [1, 8], [+1, -1]):
             initial_pieces.extend([
-                piece.Piece(piece.Rook(),   color, coord('a', row)),
-                piece.Piece(piece.Knight(), color, coord('b', row)),
-                piece.Piece(piece.Bishop(), color, coord('c', row)),
-                piece.Piece(piece.King(),   color, coord('e', row)),
-                piece.Piece(piece.Queen(),  color, coord('d', row)),
-                piece.Piece(piece.Bishop(), color, coord('f', row)),
-                piece.Piece(piece.Knight(), color, coord('g', row)),
-                piece.Piece(piece.Rook(),   color, coord('h', row)),
+                piece.Piece(piece.Rook(),   color, Square('a', row)),
+                piece.Piece(piece.Knight(), color, Square('b', row)),
+                piece.Piece(piece.Bishop(), color, Square('c', row)),
+                piece.Piece(piece.King(),   color, Square('e', row)),
+                piece.Piece(piece.Queen(),  color, Square('d', row)),
+                piece.Piece(piece.Bishop(), color, Square('f', row)),
+                piece.Piece(piece.Knight(), color, Square('g', row)),
+                piece.Piece(piece.Rook(),   color, Square('h', row)),
             ])
-            initial_pieces.extend([piece.Piece(piece.Pawn(color), color, coord(col, row+direction)) for col in "abcdefgh"])
+            initial_pieces.extend([piece.Piece(piece.Pawn(color), color, Square(col, row+direction)) for col in "abcdefgh"])
         self.boards = [Board(initial_pieces)]
 
 

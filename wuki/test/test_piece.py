@@ -1,5 +1,5 @@
 from .. import piece
-from ..helpers import White, Black
+from ..board import White, Black
 
 def test_King_init():
     king = piece.King()
