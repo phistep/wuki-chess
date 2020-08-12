@@ -1,5 +1,14 @@
 from .. import piece
-from ..board import White, Black
+from ..board import White, Black, Square
+
+def test_AbstractPiece_eq():
+    assert piece.King() == piece.King()
+    assert piece.King() != piece.Queen()
+
+def test_AbstractPiece_eq_Piece():
+    assert piece.King() == piece.Piece(piece.King(), White, Square(0,0))
+    assert piece.King() != piece.Piece(piece.Queen(), White, Square(0,0))
+
 
 def test_King_init():
     king = piece.King()

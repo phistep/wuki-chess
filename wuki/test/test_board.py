@@ -1,6 +1,6 @@
 import pytest
 from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
-from ..pieces import Piece, Queen
+from ..piece import Piece, Queen, King
 
 def test_Color_constants():
     white = Color(Color.WHITE)
@@ -125,3 +125,99 @@ def test_Square_orthogonals():
     sq = Square('c', 7)
     assert sq.orthogonals() == set([Square(x, sq.y) for x in range(BOARD_LEN)]) | set([Square(sq.x, y) for y in range(BOARD_LEN)])
 
+
+def test_Board_init():
+    pos = Square('d', 5)
+    queen = Piece(Queen(), White, pos)
+    board = Board([queen])
+    assert board._pieces == [queen]
+    assert board.index == {pos:queen}
+
+def test_Board_repr_str():
+    board = Board([Piece(Queen(), White, Square('d', 5))])
+    repr_ = "<Board pieces=1>"
+    assert repr(board) == repr_
+    assert str(board) == repr_
+
+def test_Board_repr_str():
+    board = Board([Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))])
+    assert len(board) == 2
+
+def test_Board_getitem():
+    pos = Square('d', 5)
+    queen = Piece(Queen(), White, pos)
+    board = Board([queen])
+    assert board[pos] == queen
+
+def test_Board_getitem_not_found():
+    with pytest.raises(KeyError):
+        Board([])[Square(3,3)]
+
+def test_Board_getitem_cast():
+    pos = ('d', 5)
+    queen = Piece(Queen(), White, Square(pos))
+    board = Board([queen])
+    assert board[pos] == queen
+
+def test_Board_contains_position():
+    pos = Square('d', 5)
+    queen = Piece(Queen(), White, pos)
+    board = Board([queen])
+    assert pos in board
+    assert Square(0,0) not in board
+
+def test_Board_contains_piece():
+    board = Board([Piece(Queen(), White, Square('d', 5))])
+    assert (Queen(), White) in board
+    assert (King(), Black) not in board
+
+def test_Board_iter():
+    pos = Square(4, 0)
+    queen = Piece(Queen(), White, pos)
+    board = Board([queen])
+    squares = iter(board)
+    assert next(squares) == (Square(0,0), None)
+    assert next(squares) == (Square(1,0), None)
+    assert next(squares) == (Square(2,0), None)
+    assert next(squares) == (Square(3,0), None)
+    assert next(squares) == (Square(4,0), queen)
+    assert next(squares) == (Square(5,0), None)
+    assert next(squares) == (Square(6,0), None)
+    assert next(squares) == (Square(7,0), None)
+    assert next(squares) == (Square(0,1), None)
+
+def test_Board_pieces():
+    pieces = [Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))]
+    board = Board(pieces)
+    assert board.pieces() == pieces
+    assert board.pieces(pieces[0]) == [pieces[0]]
+
+def test_Board_print(capsys):
+    board = Board([Piece(Queen(), White, Square('d', 5))])
+    board.print()
+    assert capsys.readouterr().out == """  abcdefgh  
+8  █ █ █ █ 8
+7 █ █ █ █  7
+6  █ █ █ █ 6
+5 █ █♕█ █  5
+4  █ █ █ █ 4
+3 █ █ █ █  3
+2  █ █ █ █ 2
+1 █ █ █ █  1
+  abcdefgh  
+"""
+
+def test_Board_print_ascii(capsys):
+    board = Board([Piece(Queen(), White, Square('d', 5))])
+    board.print(unicode=False)
+    assert capsys.readouterr().out == """  abcdefgh  
+8  # # # # 8
+7 # # # #  7
+6  # # # # 6
+5 # #Q# #  5
+4  # # # # 4
+3 # # # #  3
+2  # # # # 2
+1 # # # #  1
+  abcdefgh  
+"""

@@ -1,5 +1,6 @@
-BOARD_LEN = 8
+from . import piece
 
+BOARD_LEN = 8
 
 class Color:
     """Collection of convenience functions for piece colors"""
@@ -135,26 +136,76 @@ def within_board(x, y=None):
 
 class Board:
     """Stores a board position"""
-    # TODO implement self.__getitem__ for self.index lookup https://docs.python.org/3/reference/datamodel.html#object.__getitem__
-    # TODO implement __contains__ for positions (piece @ position) and pieces (kind of piece still on board?)
-    # TODO implement __iter__ over all pieces
-    # TODO implement iterator over all squares
 
     def __init__(self, pieces):
         """Build the board from a list of pieces
 
         :param pieces: list of pieces on the board
         """
-        self.pieces = pieces
+        # TODO check if two pieces are on the same square
+        # TODO check if pieces are within board
+        self._pieces = pieces
+        # TODO default dict?
         self.index = {}
         for piece in pieces:
             self.index[piece.position] = piece
 
     def __repr__(self):
-        return f"<Board pieces={len(self.pieces)}>"
+        return f"<Board pieces={len(self)}>"
 
     def __str__(self):
-        return self.__repr__
+        return repr(self)
+
+    def __len__(self):
+        return len(self._pieces)
+
+    def __getitem__(self, key):
+        if not isinstance(key, Square):
+            key = Square(key)
+        return self.index[key]
+
+    def __contains__(self, item):
+        """If Board is checked against a Square, it will return True if there's
+        a piece on the square, False otherwise. If checked against a tuple of
+        (AbstractPiece, Color) it returns true if a piece of that kind and color
+        is still on the board.
+        """
+        if isinstance(item, tuple) and len(item) == 2:
+            if isinstance(item[0], piece.AbstractPiece) and isinstance(item[1], Color):
+                return item in [(piece, piece.color) for piece in self._pieces]
+            else:
+                item = Square(item)
+        if isinstance(item, Square):
+            return item in self.index
+        else:
+            raise TypeError("Board can only contain (Abstract)Piece or check if Square is empty")
+
+    def __iter__(self):
+        """Iterating over the board object returns every square of the board
+        and the pieces that's on it. None if the square is empty.
+        :returns square, piece:
+        """
+        self._iter = Square(-1,0)
+        return self
+
+    def __next__(self):
+        if self._iter.x < BOARD_LEN-1:
+            self._iter += (1,0)
+        elif self._iter.y < BOARD_LEN-1:
+            self._iter = Square(0, self._iter.y+1)
+        else:
+            raise StopIteration
+        return self._iter, self[self._iter] if self._iter in self.index else None
+
+    def pieces(self, kind=None):
+        """Returns a list of all pieces on the board. If kind is given (as an
+        instance of an Abstract(Piece)) only the pieces of that kind are returned.
+        """
+        # TODO add color constraint?
+        if kind is None:
+            return self._pieces
+        else:
+            return list(filter(lambda a, b=kind: a==b, self._pieces))
 
     def print(self, unicode=True):
         """Print the board
@@ -166,7 +217,7 @@ class Board:
         # - :param inverted: invert colors for unicode (useful for White-on-Black terminals)
         # - for interactive mode, print up-side-down
 
-        print('  abcdefgh')
+        print('  abcdefgh  ')
         for y in reversed(range(BOARD_LEN)):
             print(y+1, end=' ')
             for x in range(BOARD_LEN):
@@ -183,6 +234,6 @@ class Board:
                         symbol = '#' if pos.color() == Black else ' '
                 print(symbol, end='')
             print('', y+1)
-        print('  abcdefgh')
+        print('  abcdefgh  ')
 
 

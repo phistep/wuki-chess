@@ -1,6 +1,29 @@
 from .board import White, Black, Square, within_board
 
-class Piece:
+class AbstractPiece:
+    """General type of a piece"""
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"<Piece {self.letter}:{self.name}>"
+
+    def __eq__(self, other):
+        if isinstance(other, AbstractPiece):
+            print('compare two pieces')
+            return self.name == other.name
+        else:
+            return False
+
+    def possible_moves(self, position, board=None):
+        """Returns a set of new possible positions."""
+        raise NotImplemented
+
+
+class Piece(AbstractPiece):
     """Instantiation of general piece type on the board"""
 
     def __init__(self, piece, color, position):
@@ -24,22 +47,6 @@ class Piece:
             return self._piece_moves(position)
         else:
             return self._piece_moves(self.position)
-
-
-class AbstractPiece:
-    """General type of a piece"""
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return f"<Piece {self.letter}:{self.name}>"
-
-    def possible_moves(self, position, board=None):
-        """Returns a set of new possible positions."""
-        raise NotImplemented
 
 
 class King(AbstractPiece):
