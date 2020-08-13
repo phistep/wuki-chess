@@ -5,6 +5,7 @@ from .. import piece
 from ..board import White, Black, Board, Square
 
 def test_Game_init_empty():
+    assert False
     game = Game([])
     initial_pieces = [
         piece.Piece(piece.Rook(),   White, Square('a', 1)),

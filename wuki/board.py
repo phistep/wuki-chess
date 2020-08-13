@@ -226,8 +226,8 @@ class Board:
 
         :raises KeyError: if the piece is not on the board
         """
-        self._pieces.remove(piece_)
         del self.index[piece_.position]
+        self._pieces.remove(piece_)
         assert piece_ not in self
         assert piece_.position not in self.index
         return piece_
@@ -241,7 +241,7 @@ class Board:
         :returns piece_: the captured piece
         """
         self.remove(piece_)
-        piece_.position = None
+        #piece_.position = None
         self.captured[piece_.color].append(piece_)
         return piece_
 
@@ -284,7 +284,7 @@ class Board:
 
         :returns Board new_board: The new board after the move
 
-        :raises IllegalMove(): when move cannot be made
+        :raises IllegalMoveError: when move cannot be made
         """
         # TODO check for check, checkmate
         new_board = Board(self._pieces)

@@ -1,9 +1,11 @@
 from .board import White, Black, Square, within_board
+from .errors import IllegalMoveError
 
 class AbstractPiece:
     """General type of a piece"""
     def __init__(self):
-        pass
+        """sets .name, .letter, .symbol map, .color"""
+        raise NotImplementedError
 
     def __str__(self):
         return self.name
@@ -18,14 +20,27 @@ class AbstractPiece:
             return False
 
     def possible_moves(self, position, board=None):
-        """Returns a set of new possible positions."""
-        raise NotImplemented
+        """Returns a list of possible moves of the piece. Some pieces need
+        information about the board for this.
+
+        :param Board board: the board on which the piece needs to find its
+            possible moves
+
+        :returns moves: a list of Sqaures that the piece could move to
+        """
+        raise NotImplementedError
 
 
 class Piece(AbstractPiece):
     """Instantiation of general piece type on the board"""
 
     def __init__(self, piece, color, position):
+        """A new piece on the board.
+
+        :param AbstractPiece piece: the kind of piece
+        :param Color color: its color
+        :param Square square: its position on the board
+        """
         self.piece = piece
         self.name = piece.name
         self.color = color
@@ -57,10 +72,27 @@ class Piece(AbstractPiece):
             return False
 
     def possible_moves(self, board=None):
+        """Returns a list of possible moves of the piece. Some pieces need
+        information about the board for this.
+
+        :param Board board: the board on which the piece needs to find its
+            possible moves
+
+        :returns moves: a list of Sqaures that the piece could move to
+        """
         return self._piece_moves(self.position, board=board)
 
     def move_to(self, target):
-        """Does not mutate but returns new piece"""
+        """Does not mutate but returns new piece
+
+        :param target: the aquare the pieces should be moved to
+
+        :returns new_piece: new piece object at the updated position
+
+        :raises IllegalMoveError: if move is not possible for te piece
+        """
+        if target not in self.possible_moves():
+            raise IllegalMoveError
         return Piece(self.piece, self.color, target)
 
 
@@ -74,15 +106,15 @@ class King(AbstractPiece):
 
     def possible_moves(self, position, board=None):
         moves = [
-            (position[0]+1, position[1]),
-            (position[0]-1, position[1]),
-            (position[0]  , position[1]+1),
-            (position[0]  , position[1]-1),
+            position + (+1,  0),
+            position + (-1,  0),
+            position + ( 0, +1),
+            position + ( 0, -1),
 
-            (position[0]+1, position[1]+1),
-            (position[0]-1, position[1]+1),
-            (position[0]+1, position[1]-1),
-            (position[0]-1, position[1]-1),
+            position + (+1, +1),
+            position + (-1, +1),
+            position + (+1, -1),
+            position + (-1, -1),
         ]
         moves = set(filter(within_board, moves))
         return moves
@@ -97,7 +129,7 @@ class Queen(AbstractPiece):
         self.symbol = {White:'♕', Black:'♛'}
 
     def possible_moves(self, position, board=None):
-        moves = diagonals(position) + orthogonals(position)
+        moves = position.diagonals() | position.orthogonals()
         moves.discard(position)
         return moves
 

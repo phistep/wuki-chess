@@ -1,6 +1,7 @@
 import pytest
 from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
 from ..piece import Piece, Queen, King
+from ..errors import IllegalMoveError
 
 def test_Color_constants():
     white = Color(Color.WHITE)
@@ -14,8 +15,8 @@ def test_Color_negation():
     assert White != Black
 
 def test_Color_str():
-    assert str(White) == 'w'
-    assert str(Black) == 'b'
+    assert str(White) == 'white'
+    assert str(Black) == 'black'
 
 def test_Color_repr():
     assert repr(White) == '<White>'
@@ -134,7 +135,7 @@ def test_Board_init():
     assert board.index == {pos:queen}
 
 def test_Board_repr():
-    assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 [<Queen color=w position=d5>]>'
+    assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 [<Queen color=white position=d5>]>'
 
 def test_Board_str():
     pieces = [Piece(Queen(), White, Square('d', 5))]
@@ -163,17 +164,34 @@ def test_Board_getitem_cast():
     board = Board([queen])
     assert board[pos] == queen
 
-def test_Board_contains_position():
-    pos = Square('d', 5)
+def test_Board_contains_Square():
+    coord = (3,4)
+    pos = Square(coord)
     queen = Piece(Queen(), White, pos)
     board = Board([queen])
     assert pos in board
+    assert coord in board
     assert Square(0,0) not in board
 
-def test_Board_contains_piece():
+def test_Board_contains_AbstractPiece():
     board = Board([Piece(Queen(), White, Square('d', 5))])
-    assert (Queen(), White) in board
-    assert (King(), Black) not in board
+    assert Queen() in board
+    assert King() not in board
+
+def test_Board_contains_illegal_comparison():
+    with pytest.raises(TypeError):
+        "string" in Board([])
+
+def test_Board_contains_Piece():
+    queen_white = Piece(Queen(), White, Square('d', 5))
+    queen_black = Piece(Queen(), Black, Square('d', 5))
+    queen_white_2 = Piece(Queen(), White, Square('d', 6))
+    king = Piece(King(), Black, Square('d', 5))
+    board = Board([queen_white])
+    assert queen_white in board
+    assert queen_black not in board
+    assert queen_white_2 not in board
+    assert king not in board
 
 def test_Board_iter():
     pos = Square(4, 0)
@@ -190,15 +208,100 @@ def test_Board_iter():
     assert next(squares) == (Square(7,0), None)
     assert next(squares) == (Square(0,1), None)
 
+def test_Board_iter_stops():
+    for _ in Board([]):
+        pass
+
 def test_Board_pieces():
     pieces = [Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))]
     board = Board(pieces)
     assert board.pieces() == pieces
     assert board.pieces(pieces[0]) == [pieces[0]]
 
+def test_Board_add():
+    board = Board([])
+    pos = Square('d', 5)
+    piece_ = Piece(Queen(), White, pos)
+    added = board.add(piece_)
+    assert added == board.pieces()
+    assert board.pieces() == [piece_]
+    assert piece_ in board
+    assert pos in board
+    assert board[pos] == piece_
+
+def test_Board_add_square_taken():
+    piece_ = Piece(Queen(), White, Square('d', 5))
+    board = Board([piece_])
+    with pytest.raises(ValueError):
+        board.add(piece_)
+
+def test_Board_capture():
+    color = White
+    pos = Square('d', 5)
+    piece_ = Piece(Queen(), color, pos)
+    board = Board([piece_])
+    board.capture(piece_)
+    assert piece_ not in board
+    assert pos not in board
+    assert piece_ in board.captured[color]
+
+
+def test_Board_remove():
+    pos = Square('d', 5)
+    piece_ = Piece(Queen(), White, pos)
+    board = Board([piece_])
+    removed = board.remove(piece_)
+    assert removed == piece_
+    assert board.pieces() == []
+    assert piece_ not in board
+    assert pos not in board
+
+def test_Board_remove_not_present():
+    piece_ = Piece(Queen(), White, Square('d', 5))
+    board = Board([])
+    with pytest.raises(KeyError):
+        board.remove(piece_)
+
 def test_Board_make_move():
-    # test exceptions
-    assert False
+    pos = Square('d', 5)
+    queen = Piece(Queen(), White, pos)
+    board = Board([queen])
+    target = pos+(0,2)
+    new_queen = Piece(Queen(), White, target)
+    new_board = board.make_move(queen, target)
+    assert new_board.pieces() == [new_queen]
+    assert queen not in new_board
+    assert new_queen in new_board
+    assert new_board[target] == new_queen
+
+def test_Board_make_move_illegal():
+    pos = Square('d', 5)
+    king = Piece(King(), White, pos)
+    board = Board([king])
+    target = pos+(0,3)
+    with pytest.raises(IllegalMoveError):
+        board.make_move(king, target)
+
+def test_Bord_make_move_capture():
+    color = White
+    pos_a = Square(('d', 5))
+    pos_b = pos_a+(0,1)
+    piece_a = Piece(Queen(), color, pos_a)
+    piece_b = Piece(Queen(), ~color, pos_b)
+    board = Board([piece_a, piece_b])
+    new_board = board.make_move(piece_a, pos_b)
+    assert new_board[pos_b] == piece_a.move_to(pos_b)
+    assert piece_b not in new_board
+    assert piece_b in new_board.captured[~color]
+
+def  test_Bord_make_move_capture_self():
+    pos_a = Square(('d', 5))
+    pos_b = pos_a+(0,1)
+    pieces = [Piece(Queen(), White, pos_a), Piece(Queen(), White, pos_b)]
+    board = Board(pieces)
+    with pytest.raises(IllegalMoveError):
+        board.make_move(pieces[0], pos_b)
+
 
 def test_Board_print(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])
