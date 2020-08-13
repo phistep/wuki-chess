@@ -287,6 +287,7 @@ class Board:
         :raises IllegalMoveError: when move cannot be made
         """
         # TODO check for check, checkmate
+        # TODO check for other pieces blocking the way
         new_board = Board(self._pieces)
         if target in new_board:
             # there is something on the board

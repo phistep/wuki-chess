@@ -24,8 +24,10 @@ For now you gotta read the source. The commandline application is in
 ## TODO
 - general
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
-	- should `AbstractPiece.possible_moves()` check for opponent pieces or one layer above?
+	- AbstractPiece.possible_moves() -> legal_moves()
+	- Board.possible_moves(player=self.current_player)
 	- rules
+		- movement can be blocked by other pieces along the way (Piece.possible_moves() not AbstractPiece.possible_moves())
 		- en passent
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
@@ -56,6 +58,5 @@ For now you gotta read the source. The commandline application is in
 - package
 	- sphinx docs
 	- automated tests
-	- actual python package structure + executables
-		- helpers.py -> common.py
-		- dependencies, installer
+	- dependencies, installer
+	- package docsting header (author, etc)
