@@ -53,8 +53,7 @@ def test_Piece_init():
     assert piece_.letter == abs_piece.letter if color == White else abs_piece.letter.lower()
     assert piece_.symbol == abs_piece.symbol[color]
     assert piece_.position == pos
-    # TODO
-    assert piece_._piece_moves == abs_piece.possible_moves
+    assert piece_.piece.legal_moves == abs_piece.legal_moves
 
 def test_Piece_init_not_within_board():
     with pytest.raises(ValueError):
@@ -99,11 +98,12 @@ def test_Piece_possible_moves():
     pos = Square('a', 2)
     color = White
     piece_ = Piece(abs_piece, color, pos)
-    assert piece_.possible_moves() == abs_piece.possible_moves(pos)
+    board = Board([piece_])
+    assert piece_.possible_moves(board) == abs_piece.legal_moves(pos, board=board)
     abs_piece = Pawn(color)
     piece_ = Piece(abs_piece, color, pos)
     board = Board([piece_])
-    assert piece_.possible_moves(board=board) == abs_piece.possible_moves(pos, board=board)
+    assert piece_.possible_moves(board) == abs_piece.legal_moves(pos, board=board)
 
 @pytest.mark.skip(reason="not implemented")
 def test_Piece_possible_moves_castling(castling_board):
@@ -135,7 +135,7 @@ def test_Piece_move_to():
     pos = Square('d', 5)
     piece_ = Piece(Queen(), White, pos)
     target = pos+(0,3)
-    new_piece = piece_.move_to(target)
+    new_piece = piece_.move_to(target, None)
     assert new_piece == Piece(Queen(), White, target)
     assert new_piece.position == target
     assert piece_ != new_piece
@@ -146,7 +146,7 @@ def test_Piece_move_to_illegal():
     king = Piece(King(), White, pos)
     target = pos+(0,3)
     with pytest.raises(IllegalMoveError):
-        king.move_to(target)
+        king.move_to(target, None)
 
 
 def test_King_init():
@@ -156,18 +156,18 @@ def test_King_init():
     assert king.symbol[White] == '♔'
     assert king.symbol[Black] == '♚'
 
-def test_King_possible_moves():
+def test_King_legal_moves():
     king = King()
-    assert king.possible_moves(Square(4,4)) == set([(3,4), (5,4), (4,3), (4,5), (3,3), (5,5), (3,5), (5,3)])
-    assert king.possible_moves(Square(0,4)) == set([(0,3), (0,5), (1,3), (1,4), (1,5)])
-    assert king.possible_moves(Square(7,7)) == set([(7,6), (6,7), (6,6)])
+    assert king.legal_moves(Square(4,4)) == set([(3,4), (5,4), (4,3), (4,5), (3,3), (5,5), (3,5), (5,3)])
+    assert king.legal_moves(Square(0,4)) == set([(0,3), (0,5), (1,3), (1,4), (1,5)])
+    assert king.legal_moves(Square(7,7)) == set([(7,6), (6,7), (6,6)])
 
 
 @pytest.mark.skip(reason="not implemented")
-def test_King_possible_moves_castling(castling_board):
+def test_King_legal_moves_castling(castling_board):
     # even though some Squares are blocked by other pices, the AbstractPiece does not care about this
-    assert King().possible_moves(Square('e',1), board=castling_board) == set(map(Square, [('a',1), ('h',1), ('d',1), ('f',1), ('d',2), ('e',2), ('f',2)]))
-    assert King().possible_moves(Square('e',8), board=castling_board) == set(map(Square, [('a',8), ('h',8), ('d',8), ('f',8), ('d',7), ('e',7), ('f',7)]))
+    assert King().legal_moves(Square('e',1), board=castling_board) == set(map(Square, [('a',1), ('h',1), ('d',1), ('f',1), ('d',2), ('e',2), ('f',2)]))
+    assert King().legal_moves(Square('e',8), board=castling_board) == set(map(Square, [('a',8), ('h',8), ('d',8), ('f',8), ('d',7), ('e',7), ('f',7)]))
 
 
 def test_Queen_init():
@@ -177,8 +177,8 @@ def test_Queen_init():
     assert queen.symbol[White] == '♕'
     assert queen.symbol[Black] == '♛'
 
-def test_Queen_possible_moves():
-    assert Queen().possible_moves(Square(4,4)) == set([
+def test_Queen_legal_moves():
+    assert Queen().legal_moves(Square(4,4)) == set([
         (0,4), (1,4), (2,4), (3,4), (5,4), (6,4), (7,4),
         (4,0), (4,1), (4,2), (4,3), (4,5), (4,6), (4,7),
         (0,0), (1,1), (2,2), (3,3), (5,5), (6,6), (7,7),
@@ -193,8 +193,8 @@ def test_Rook_init():
     assert rook.symbol[White] == '♖'
     assert rook.symbol[Black] == '♜'
 
-def test_Rook_possible_moves():
-    assert Rook().possible_moves(Square(4,4)) == set([(0,4), (1,4), (2,4), (3,4), (5,4), (6,4), (7,4), (4,0), (4,1), (4,2), (4,3), (4,5), (4,6), (4,7)])
+def test_Rook_legal_moves():
+    assert Rook().legal_moves(Square(4,4)) == set([(0,4), (1,4), (2,4), (3,4), (5,4), (6,4), (7,4), (4,0), (4,1), (4,2), (4,3), (4,5), (4,6), (4,7)])
 
 
 def test_Bishop_init():
@@ -204,8 +204,8 @@ def test_Bishop_init():
     assert bishop.symbol[White] == '♗'
     assert bishop.symbol[Black] == '♝'
 
-def test_Bishop_possible_moves():
-    assert Bishop().possible_moves(Square(6,1)) == set([(5,0), (7,2), (7,0), (5,2), (4,3), (3,4), (2,5), (1,6), (0,7)])
+def test_Bishop_legal_moves():
+    assert Bishop().legal_moves(Square(6,1)) == set([(5,0), (7,2), (7,0), (5,2), (4,3), (3,4), (2,5), (1,6), (0,7)])
 
 
 def test_Knight_init():
@@ -217,8 +217,8 @@ def test_Knight_init():
 
 def test_Knight_possible_moves():
     knight = Knight()
-    assert knight.possible_moves(Square('f', 3)) == set(map(Square,[('e',5), ('d',4), ('d', 2), ('e',1), ('g', 1), ('h',2), ('h',4), ('g',5)]))
-    assert knight.possible_moves(Square('g', 1)) == set(map(Square,[('e',2), ('f',3), ('h', 3)]))
+    assert knight.legal_moves(Square('f', 3)) == set(map(Square,[('e',5), ('d',4), ('d', 2), ('e',1), ('g', 1), ('h',2), ('h',4), ('g',5)]))
+    assert knight.legal_moves(Square('g', 1)) == set(map(Square,[('e',2), ('f',3), ('h', 3)]))
 
 
 def test_Pawn_init():
@@ -232,13 +232,13 @@ def test_Pawn_init():
 
 def test_Pawn_possible_moves():
     pawn_w = Pawn(White)
-    assert pawn_w.possible_moves(Square('e',2), board=Board([])) == set([Square('e',3), Square('e',4)])
-    assert pawn_w.possible_moves(Square('c',4), board=Board([])) == set([Square('c',5)])
-    assert pawn_w.possible_moves(Square('d',8), board=Board([])) == set([])
+    assert pawn_w.legal_moves(Square('e',2), board=Board([])) == set([Square('e',3), Square('e',4)])
+    assert pawn_w.legal_moves(Square('c',4), board=Board([])) == set([Square('c',5)])
+    assert pawn_w.legal_moves(Square('d',8), board=Board([])) == set([])
     pawn_b = Pawn(Black)
-    assert pawn_b.possible_moves(Square('g',7), board=Board([])) == set([Square('g',6), Square('g',5)])
-    assert pawn_b.possible_moves(Square('a',6), board=Board([])) == set([Square('a',5)])
-    assert pawn_b.possible_moves(Square('d',1), board=Board([])) == set([])
+    assert pawn_b.legal_moves(Square('g',7), board=Board([])) == set([Square('g',6), Square('g',5)])
+    assert pawn_b.legal_moves(Square('a',6), board=Board([])) == set([Square('a',5)])
+    assert pawn_b.legal_moves(Square('d',1), board=Board([])) == set([])
 
 def test_Pawn_possible_moves_capture():
     pieces = [
@@ -247,9 +247,9 @@ def test_Pawn_possible_moves_capture():
             Piece(Pawn(Black), Black, Square('e',6)),
         ]
     board = Board(pieces)
-    assert Pawn(White).possible_moves(pieces[0].position, board=board) == set([pieces[1].position, pieces[2].position, pieces[0].position+(0,+1)])
-    assert Pawn(Black).possible_moves(pieces[1].position, board=board) == set([pieces[0].position, pieces[1].position+(0,-1)])
-    assert Pawn(Black).possible_moves(pieces[2].position, board=board) == set([pieces[0].position, pieces[2].position+(0,-1)])
+    assert Pawn(White).legal_moves(pieces[0].position, board=board) == set([pieces[1].position, pieces[2].position, pieces[0].position+(0,+1)])
+    assert Pawn(Black).legal_moves(pieces[1].position, board=board) == set([pieces[0].position, pieces[1].position+(0,-1)])
+    assert Pawn(Black).legal_moves(pieces[2].position, board=board) == set([pieces[0].position, pieces[2].position+(0,-1)])
 
 @pytest.mark.skip(reason="not implemented")
 def test_Pawn_possible_moves_en_passent():

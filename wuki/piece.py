@@ -19,10 +19,12 @@ class AbstractPiece:
         else:
             raise TypeError("Can only compare AbstractPiece with another AbstractPiece")
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         """Returns a list of possible moves of the piece. Some pieces need
         information about the board for this.
 
+        :param Square position: the position on the board from which the move
+            shall be made
         :param Board board: the board on which the piece needs to find its
             possible moves
 
@@ -46,7 +48,6 @@ class Piece(AbstractPiece):
         self.color = color
         self.letter = piece.letter.upper() if color is White else piece.letter.lower()
         self.symbol = piece.symbol[color]
-        self._piece_moves = piece.possible_moves
         if not isinstance(position, Square):
             position = Square(position)
         if not position.within_board():
@@ -71,7 +72,7 @@ class Piece(AbstractPiece):
         else:
             raise TypeError("Piece can only be compared with Piece or AbstractPiece")
 
-    def possible_moves(self, board=None):
+    def possible_moves(self, board):
         """Returns a list of possible moves of the piece. Some pieces need
         information about the board for this.
 
@@ -80,9 +81,9 @@ class Piece(AbstractPiece):
 
         :returns moves: a list of Sqaures that the piece could move to
         """
-        return self._piece_moves(self.position, board=board)
+        return self.piece.legal_moves(self.position, board)
 
-    def move_to(self, target):
+    def move_to(self, target, board):
         """Does not mutate but returns new piece
 
         :param target: the aquare the pieces should be moved to
@@ -91,7 +92,7 @@ class Piece(AbstractPiece):
 
         :raises IllegalMoveError: if move is not possible for te piece
         """
-        if target not in self.possible_moves():
+        if target not in self.possible_moves(board):
             raise IllegalMoveError
         return Piece(self.piece, self.color, target)
 
@@ -104,7 +105,7 @@ class King(AbstractPiece):
         self.letter = 'K'
         self.symbol = {White:'♔', Black:'♚'}
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         moves = [
             position + (+1,  0),
             position + (-1,  0),
@@ -128,7 +129,7 @@ class Queen(AbstractPiece):
         self.letter = 'Q'
         self.symbol = {White:'♕', Black:'♛'}
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         moves = position.diagonals() | position.orthogonals()
         moves.discard(position)
         return moves
@@ -142,7 +143,7 @@ class Rook(AbstractPiece):
         self.letter = 'R'
         self.symbol = {White:'♖', Black:'♜'}
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         moves = position.orthogonals()
         moves.discard(position)
         return moves
@@ -156,7 +157,7 @@ class Bishop(AbstractPiece):
         self.letter = 'B'
         self.symbol = {White:'♗', Black:'♝'}
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         moves = position.diagonals()
         moves.discard(position)
         return moves
@@ -170,7 +171,7 @@ class Knight(AbstractPiece):
         self.letter = 'N'
         self.symbol = {White:'♘', Black:'♞'}
 
-    def possible_moves(self, position, board=None):
+    def legal_moves(self, position, board=None):
         verticals   = [position + (step, 0)      for step in [-2,+2]]
         horizontals = [position + (0, step) for step in [-2,+2]]
         moves  = [pos + (0, step) for pos in verticals   for step in [-1,+1]]
@@ -193,7 +194,7 @@ class Pawn(AbstractPiece):
         self.color = color
         self.symbol = {White:'♙', Black:'♟'}
 
-    def possible_moves(self, position, board):
+    def legal_moves(self, position, board):
         # TODO en passent
         # TODO promotion (raise exception?)
         # TODO two square movement not allowed when blocked by piece

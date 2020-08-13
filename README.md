@@ -24,15 +24,14 @@ For now you gotta read the source. The commandline application is in
 ## TODO
 - general
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
-	- AbstractPiece.possible_moves() -> legal_moves()
-	- Board.possible_moves(player=self.current_player)
+	- `Board.possible_moves(player=self.current_player)`
 	- rules
-		- movement can be blocked by other pieces along the way (Piece.possible_moves() not AbstractPiece.possible_moves())
-		- en passent
+		- movement can be blocked by other pieces along the way (`Piece.possible_moves()` not `AbstractPiece.legal_moves()`)
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
 		- game end
 		- remis!
+		- en passent
 - find next move
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
@@ -52,6 +51,8 @@ For now you gotta read the source. The commandline application is in
 			- double pawns
 			- attacks
 			- cover
+			- freedom of movement
+			- control over center
 - visualization
 	- matplotlib for pdf game output
 	- wxpython gui

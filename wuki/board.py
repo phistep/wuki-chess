@@ -297,7 +297,7 @@ class Board:
                 # capturing the piece
                 new_board.capture(new_board[target])
         new_board.remove(piece_)
-        piece_ = piece_.move_to(target)
+        piece_ = piece_.move_to(target, board=self)
         new_board.add(piece_)
         return new_board
 

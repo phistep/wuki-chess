@@ -290,7 +290,7 @@ def test_Bord_make_move_capture():
     piece_b = Piece(Queen(), ~color, pos_b)
     board = Board([piece_a, piece_b])
     new_board = board.make_move(piece_a, pos_b)
-    assert new_board[pos_b] == piece_a.move_to(pos_b)
+    assert new_board[pos_b] == piece_a.move_to(pos_b, new_board)
     assert piece_b not in new_board
     assert piece_b in new_board.captured[~color]
 
