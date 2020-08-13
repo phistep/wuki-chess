@@ -19,6 +19,9 @@ class AbstractPiece:
         else:
             raise TypeError("Can only compare AbstractPiece with another AbstractPiece")
 
+    def __hash__(self):
+        return hash(self.name)
+
     def legal_moves(self, position, board=None):
         """Returns a list of possible moves of the piece. Some pieces need
         information about the board for this.
@@ -71,6 +74,9 @@ class Piece(AbstractPiece):
             return self.name == other.name
         else:
             raise TypeError("Piece can only be compared with Piece or AbstractPiece")
+
+    def __hash__(self):
+        return hash((self.letter, self.color, self.position))
 
     def possible_moves(self, board):
         """Returns a list of possible moves of the piece. Some pieces need
@@ -193,6 +199,9 @@ class Pawn(AbstractPiece):
         self.letter = 'P'
         self.color = color
         self.symbol = {White:'♙', Black:'♟'}
+
+    def __hash__(self):
+        return hash((self.name, self.color))
 
     def legal_moves(self, position, board):
         # TODO en passent

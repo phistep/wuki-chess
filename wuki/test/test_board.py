@@ -131,14 +131,14 @@ def test_Board_init():
     pos = Square('d', 5)
     queen = Piece(Queen(), White, pos)
     board = Board([queen])
-    assert board._pieces == [queen]
+    assert board._pieces == {queen}
     assert board.index == {pos:queen}
 
 def test_Board_repr():
-    assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 [<Queen color=white position=d5>]>'
+    assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 {<Queen color=white position=d5>}>'
 
 def test_Board_str():
-    pieces = [Piece(Queen(), White, Square('d', 5))]
+    pieces = {Piece(Queen(), White, Square('d', 5))}
     assert str(Board(pieces)) == str(pieces)
 
 def test_Board_eq():
@@ -147,6 +147,11 @@ def test_Board_eq():
     assert board == Board(pieces)
     assert board != Board(pieces[:1])
 
+    board.capture(pieces[0])
+    assert board != Board(pieces)
+    board2 = Board(pieces)
+    board2.capture(pieces[0])
+    assert board == board2
 
 def test_Board_getitem():
     pos = Square('d', 5)
@@ -215,8 +220,8 @@ def test_Board_iter_stops():
 def test_Board_pieces():
     pieces = [Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))]
     board = Board(pieces)
-    assert board.pieces() == pieces
-    assert board.pieces(pieces[0]) == [pieces[0]]
+    assert board.pieces() == set(pieces)
+    assert board.pieces(pieces[0]) == {pieces[0]}
 
 def test_Board_add():
     board = Board([])
@@ -224,7 +229,7 @@ def test_Board_add():
     piece_ = Piece(Queen(), White, pos)
     added = board.add(piece_)
     assert added == board.pieces()
-    assert board.pieces() == [piece_]
+    assert board.pieces() == {piece_}
     assert piece_ in board
     assert pos in board
     assert board[pos] == piece_
@@ -245,14 +250,13 @@ def test_Board_capture():
     assert pos not in board
     assert piece_ in board.captured[color]
 
-
 def test_Board_remove():
     pos = Square('d', 5)
     piece_ = Piece(Queen(), White, pos)
     board = Board([piece_])
     removed = board.remove(piece_)
     assert removed == piece_
-    assert board.pieces() == []
+    assert board.pieces() == set()
     assert piece_ not in board
     assert pos not in board
 
@@ -269,7 +273,7 @@ def test_Board_make_move():
     target = pos+(0,2)
     new_queen = Piece(Queen(), White, target)
     new_board = board.make_move(queen, target)
-    assert new_board.pieces() == [new_queen]
+    assert new_board.pieces() == {new_queen}
     assert queen not in new_board
     assert new_queen in new_board
     assert new_board[target] == new_queen

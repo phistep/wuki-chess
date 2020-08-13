@@ -82,7 +82,7 @@ class Square:
         return ''.join([str(c) for c in self.file_rank()])
 
     def __hash__(self):
-        return (self.x, self.y).__hash__()
+        return hash((self.x, self.y))
 
     def __eq__(self, other):
         if isinstance(other, tuple) and len(other) == 2:
@@ -159,12 +159,12 @@ class Board:
         """
         # TODO check if two pieces are on the same square
         # TODO check if pieces are within board
-        self._pieces = pieces
+        self._pieces = set(pieces)
         # TODO default dict?
         self.index = dict()
         for piece_ in self._pieces:
             self.index[piece_.position] = piece_
-        self.captured = {White:[], Black:[]}
+        self.captured = {White:set(), Black:set()}
 
     def __repr__(self):
         return f"<Board pieces={len(self)} {self._pieces}>"
@@ -177,7 +177,7 @@ class Board:
         return len(self._pieces)
 
     def __eq__(self, other):
-        return self._pieces == other._pieces
+        return self._pieces == other._pieces and self.captured == other.captured
 
     def __getitem__(self, key):
         """Returns piece on the key square"""
@@ -196,7 +196,11 @@ class Board:
         if isinstance(item, Square):
             return item in self.index
         elif isinstance(item, piece.AbstractPiece):
-            return item in self._pieces
+            # we have to cast to list since set.__contains__ compares hashes
+            # and these are different for Piece and AbstractPiece.
+            # by forcing the set into a list, Piece.__eq__() is used element-
+            # wise on the list and can give us fuzzy equivalence
+            return item in list(self._pieces)
         else:
             raise TypeError("Board can only contain (Abstract)Piece or check if Square is empty")
 
@@ -242,7 +246,7 @@ class Board:
         """
         self.remove(piece_)
         #piece_.position = None
-        self.captured[piece_.color].append(piece_)
+        self.captured[piece_.color].add(piece_)
         return piece_
 
     def add(self, piece_):
@@ -256,7 +260,7 @@ class Board:
         """
         if piece_.position in self:
             raise ValueError("Target square already has a piece on it")
-        self._pieces.append(piece_)
+        self._pieces.add(piece_)
         self.index[piece_.position] = piece_
         assert piece_ in self
         assert self.index[piece_.position] == piece_
@@ -272,7 +276,7 @@ class Board:
         if kind is None:
             return self._pieces
         else:
-            return [p for p in self._pieces if p == kind]
+            return set([p for p in self._pieces if p == kind])
 
     def make_move(self, piece_, target, color=None):
         """Move on the current board and return the new board. This does not

@@ -58,6 +58,5 @@ For now you gotta read the source. The commandline application is in
 	- wxpython gui
 - package
 	- sphinx docs
-	- automated tests
 	- dependencies, installer
 	- package docsting header (author, etc)

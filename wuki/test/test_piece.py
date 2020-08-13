@@ -41,6 +41,10 @@ def test_AbstractPiece_str_repr():
     assert str(test) == name
     assert repr(test) == f'<AbstractPiece {name} ({letter})>'
 
+def test_AbstractPiece_hash():
+    assert {King(): 1}
+    assert {Pawn(White): 1}
+
 
 def test_Piece_init():
     pos = Square('a', 1)
@@ -93,7 +97,10 @@ def test_Piece_eq_illegal():
     with pytest.raises(TypeError):
         Piece(King(), White, Square('a', 1)) == "string"
 
-def test_Piece_possible_moves():
+def test_Piece_hash():
+    assert {Piece(King(), White, Square('a', 1)): 1}
+
+def test_Piece_legal_moves():
     abs_piece = King()
     pos = Square('a', 2)
     color = White

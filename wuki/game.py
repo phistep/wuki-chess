@@ -40,14 +40,10 @@ class Game:
         for round_ in moves:
             current_round = round_.split(' ')
             for move in current_round:
-                piece_, target = self.parse_move(move)
-                self.moves.append((piece_, target))
-                new_board = self.boards[-1].make_move(piece_, target)
-                self.boards.append(new_board)
-                self.current_player = ~self.current_player
+                self.make_move(move)
 
     def __repr__(self):
-        return f"<Game moves={len(self.moves)} own_color={sefl.own_color}>"
+        return f"<Game moves={len(self.moves)} current_player={self.current_player}>"
 
     def _move_str(self, move):
         """Format a move tuple (Piece, Square target) into `a3Qa8`."""
@@ -56,7 +52,11 @@ class Game:
     def __str__(self):
         """Algebraic notation of the whole game"""
         moves = [self._move_str(m) for m in self.moves]
-        return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))
+        return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))+'\n'
+
+    def __len__(self):
+        """The length of the game is the number of moves that have been played"""
+        return len(self.moves)
 
     def parse_move(self, move, current_player=None, board=None):
         """Parse a move string in Algebraic Notation and returns the piece to
@@ -104,7 +104,7 @@ class Game:
                 if 'source_file' in matches and matches['source_file']:
                     possible_pieces = [p for p in possible_pieces if p.position.file == matches['source_file']]
                 if 'source_rank' in matches and matches['source_rank']:
-                    possible_pieces = [p for p in possible_pieces if p.position.rank == matches['source_rank']]
+                    possible_pieces = [p for p in possible_pieces if p.position.rank == int(matches['source_rank'])]
                 possible_pieces = list(possible_pieces)
 
                 if len(possible_pieces) == 1:
@@ -112,28 +112,35 @@ class Game:
                 else:
                     raise MoveParseError('Source piece inference not possible')
             if not piece_id == piece_.letter.upper():
-                raise MoveParseError("Specified source piece and piece on that square do not match (is {piece.letter().upper()})")
+                raise MoveParseError(f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})")
             if not current_player == piece_.color:
                 raise MoveParseError("Color of piece at source square does not match current player")
         except Exception as e:
             raise MoveParseError(f"Malformed move '{move}': {e}")
         return piece_, target
 
-    def make_move(self, piece, target):
+    def make_move(self, piece, target=None):
         """Move on the current board.
 
         :param Piece piece: the piece that is supposed to be moved. It includes
-            its position on the board
+            its position on the board.
+            Can also be a string with a move "a1Qa6", then the target parameter
+            has to be ommited
         :param Square target: the square the piece to be moved to
 
         :raises IllegalMoveError: when move cannot be made
         :raises WrongPlayerError: when the color of the pieces is not the one
             of the current player
         """
-        # TODO ignore_color option?
+        if isinstance(piece, str) and target is None:
+            piece, target = self.parse_move(piece)
+        elif target is None:
+            raise ValueError("Either move is passed as string or piece and target have to be supplied")
         if piece.color != self.current_player:
-            raise WrongPlayerError(f"current player: {self.current_layer}")
-        self.boards.append(self.boards[-1].make_move())
+            raise WrongPlayerError(f"current player: {self.current_player}")
+        self.moves.append((piece, target))
+        self.boards.append(self.boards[-1].make_move(piece, target))
+        self.current_player = ~self.current_player
 
     def print_current_board(self, unicode=True):
         """Print the current board.
