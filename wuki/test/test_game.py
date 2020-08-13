@@ -5,7 +5,6 @@ from .. import piece
 from ..board import White, Black, Board, Square
 
 def test_Game_init_empty():
-    assert False
     game = Game([])
     initial_pieces = [
         piece.Piece(piece.Rook(),   White, Square('a', 1)),
@@ -34,6 +33,7 @@ def test_Game_init_empty():
     assert game.current_player == Game.FIRST_PLAYER
     assert len(game.moves) == 0
 
+@pytest.mark.skip(reason="test not implemented")
 def test_Game_init_move():
     assert False
 
@@ -51,5 +51,6 @@ def test_Game_parse_move_wrong_player():
         Game([]).parse_move('g1Nf3', current_player=~Game.FIRST_PLAYER)
 
 # TODO test game make_move exceptions
+@pytest.mark.skip(reason="test not implemented")
 def test_Game_make_move():
     assert False

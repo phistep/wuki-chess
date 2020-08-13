@@ -5,19 +5,19 @@ class AbstractPiece:
     """General type of a piece"""
     def __init__(self):
         """sets .name, .letter, .symbol map, .color"""
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return f"<Piece {self.letter}:{self.name}>"
+        return f"<AbstractPiece {self.name} ({self.letter})>"
 
     def __eq__(self, other):
         if isinstance(other, AbstractPiece):
             return self.name == other.name
         else:
-            return False
+            raise TypeError("Can only compare AbstractPiece with another AbstractPiece")
 
     def possible_moves(self, position, board=None):
         """Returns a list of possible moves of the piece. Some pieces need
@@ -28,7 +28,7 @@ class AbstractPiece:
 
         :returns moves: a list of Sqaures that the piece could move to
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
 class Piece(AbstractPiece):
@@ -69,7 +69,7 @@ class Piece(AbstractPiece):
         elif isinstance(other, AbstractPiece):
             return self.name == other.name
         else:
-            return False
+            raise TypeError("Piece can only be compared with Piece or AbstractPiece")
 
     def possible_moves(self, board=None):
         """Returns a list of possible moves of the piece. Some pieces need
@@ -143,7 +143,9 @@ class Rook(AbstractPiece):
         self.symbol = {White:'♖', Black:'♜'}
 
     def possible_moves(self, position, board=None):
-        return orthogonals(position).discard(position)
+        moves = position.orthogonals()
+        moves.discard(position)
+        return moves
 
 
 class Bishop(AbstractPiece):
@@ -173,7 +175,7 @@ class Knight(AbstractPiece):
         horizontals = [position + (0, step) for step in [-2,+2]]
         moves  = [pos + (0, step) for pos in verticals   for step in [-1,+1]]
         moves += [pos + (step, 0) for pos in horizontals for step in [-1,+1]]
-        moves = list(filter(within_board, moves))
+        moves = set(filter(within_board, moves))
         return moves
 
 
@@ -206,12 +208,11 @@ class Pawn(AbstractPiece):
             opponent_row = 0
             starting_row = 6
         if position.y == opponent_row:
-            return []
+            return set([])
         if position.y == starting_row:
             # starting row, can move two squares
             distance.append(2)
         moves = [position + (0, direction*dist) for dist in distance]
-        # TODO test capturing
         captures = [position + (d, direction) for d in [-1,+1]]
         captures = list(filter(lambda p: p in board and p.color is not self.color, captures))
         moves = set(filter(within_board, moves+captures))
