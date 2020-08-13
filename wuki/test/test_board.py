@@ -133,15 +133,19 @@ def test_Board_init():
     assert board._pieces == [queen]
     assert board.index == {pos:queen}
 
-def test_Board_repr_str():
-    board = Board([Piece(Queen(), White, Square('d', 5))])
-    repr_ = "<Board pieces=1>"
-    assert repr(board) == repr_
-    assert str(board) == repr_
+def test_Board_repr():
+    assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 [<Queen color=w position=d5>]>'
 
-def test_Board_repr_str():
-    board = Board([Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))])
-    assert len(board) == 2
+def test_Board_str():
+    pieces = [Piece(Queen(), White, Square('d', 5))]
+    assert str(Board(pieces)) == str(pieces)
+
+def test_Board_eq():
+    pieces = [Piece(Queen(), White, Square('a', 3)), Piece(Queen(), Black, Square('b', 3))]
+    board = Board(pieces)
+    assert board == Board(pieces)
+    assert board != Board(pieces[:1])
+
 
 def test_Board_getitem():
     pos = Square('d', 5)
@@ -191,6 +195,10 @@ def test_Board_pieces():
     board = Board(pieces)
     assert board.pieces() == pieces
     assert board.pieces(pieces[0]) == [pieces[0]]
+
+def test_Board_make_move():
+    # test exceptions
+    assert False
 
 def test_Board_print(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])

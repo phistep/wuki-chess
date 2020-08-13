@@ -1,4 +1,5 @@
 from . import piece
+from .errors import IllegalMoveError
 
 BOARD_LEN = 8
 
@@ -12,7 +13,7 @@ class Color:
 
     def __str__(self):
         """One letter representation of the color"""
-        return 'w' if self.color is self.WHITE else 'b'
+        return 'white' if self.color is self.WHITE else 'black'
 
     def __repr__(self):
         return '<White>' if self.color is self.WHITE else '<Black>'
@@ -93,16 +94,24 @@ class Square:
     def __add__(self, other):
         """You can only add a tuple of coordinate offsets, not another Square"""
         if not len(other) == 2:
-            raise TypeError("Only a tuple of length two can be added to a Sqaure")
+            raise TypeError("Only a tuple of length two can be added to a Square")
         return Square(self.x+other[0], self.y+other[1])
+
+    @property
+    def file(self):
+        """The file/column of the square."""
+        return "abcdefgh"[self.x]
+    column = file
+
+    @property
+    def rank(self):
+        """The rank/row of the square."""
+        return self.y + 1
+    row = rank
 
     def file_rank(self):
         """Returns a tuple of (file, rank)/(column, row) representation of the coordinates."""
-        # column
-        file_ = "abcdefgh"[self.x]
-        # row
-        rank = self.y + 1
-        return (file_, rank)
+        return (self.file, self.rank)
 
     def coords(self):
         "Return coordinate tuple (x,y)"
@@ -135,8 +144,14 @@ def within_board(x, y=None):
 
 
 class Board:
-    """Stores a board position"""
+    """Stores a board position.
 
+    Adding and removing of pieces is done via .add()/.remove(), to move piecese
+    around according to the rules of the game, use .make_move(). One can
+    iterate over the hole board using iter() or over its pieces by using
+    iter(Board.pieces()). Supports indexing board[Square(x,y)] and member
+    checking Piece in Board.
+    """
     def __init__(self, pieces):
         """Build the board from a list of pieces
 
@@ -146,20 +161,26 @@ class Board:
         # TODO check if pieces are within board
         self._pieces = pieces
         # TODO default dict?
-        self.index = {}
-        for piece in pieces:
-            self.index[piece.position] = piece
+        self.index = dict()
+        for piece_ in self._pieces:
+            self.index[piece_.position] = piece_
+        self.captured = {White:[], Black:[]}
 
     def __repr__(self):
-        return f"<Board pieces={len(self)}>"
+        return f"<Board pieces={len(self)} {self._pieces}>"
 
     def __str__(self):
-        return repr(self)
+        return str(self._pieces)
 
     def __len__(self):
+        """Returns number of pieces still on the board."""
         return len(self._pieces)
 
+    def __eq__(self, other):
+        return self._pieces == other._pieces
+
     def __getitem__(self, key):
+        """Returns piece on the key square"""
         if not isinstance(key, Square):
             key = Square(key)
         return self.index[key]
@@ -171,12 +192,11 @@ class Board:
         is still on the board.
         """
         if isinstance(item, tuple) and len(item) == 2:
-            if isinstance(item[0], piece.AbstractPiece) and isinstance(item[1], Color):
-                return item in [(piece, piece.color) for piece in self._pieces]
-            else:
-                item = Square(item)
+            item = Square(item)
         if isinstance(item, Square):
             return item in self.index
+        elif isinstance(item, piece.AbstractPiece):
+            return item in self._pieces
         else:
             raise TypeError("Board can only contain (Abstract)Piece or check if Square is empty")
 
@@ -197,15 +217,88 @@ class Board:
             raise StopIteration
         return self._iter, self[self._iter] if self._iter in self.index else None
 
+    def remove(self, piece_):
+        """Remove a piece from the board.
+
+        :param piece_: the piece to be removed from the board
+
+        :returns piece_: the piece that was removed
+
+        :raises KeyError: if the piece is not on the board
+        """
+        self._pieces.remove(piece_)
+        del self.index[piece_.position]
+        assert piece_ not in self
+        assert piece_.position not in self.index
+        return piece_
+
+    def capture(self, piece_):
+        """Capture a piece. It's removed from the board and added to the
+        .caputured list.
+
+        :param piece_: the piece to be marked as captured
+
+        :returns piece_: the captured piece
+        """
+        self.remove(piece_)
+        piece_.position = None
+        self.captured[piece_.color].append(piece_)
+        return piece_
+
+    def add(self, piece_):
+        """Add a piece to the board.
+        
+        :param piece_: the piece to be added
+
+        :returns pieces: the current list of pieces after the new one was added
+
+        :raises ValueError: if the target square already has a piece on it
+        """
+        if piece_.position in self:
+            raise ValueError("Target square already has a piece on it")
+        self._pieces.append(piece_)
+        self.index[piece_.position] = piece_
+        assert piece_ in self
+        assert self.index[piece_.position] == piece_
+        return self._pieces
+
     def pieces(self, kind=None):
         """Returns a list of all pieces on the board. If kind is given (as an
         instance of an Abstract(Piece)) only the pieces of that kind are returned.
+
+        :param kind: If a Piece or AbstractPiece is given, only pieces of that
+            kind are returned
         """
-        # TODO add color constraint?
         if kind is None:
             return self._pieces
         else:
-            return list(filter(lambda a, b=kind: a==b, self._pieces))
+            return [p for p in self._pieces if p == kind]
+
+    def make_move(self, piece_, target, color=None):
+        """Move on the current board and return the new board. This does not
+        mutate the current object!
+
+        :param Piece piece: the Piece that is supposed to be moved. It includes its
+            position on the board
+        :param Square target: the quare where the pieces is to be moved to
+
+        :returns Board new_board: The new board after the move
+
+        :raises IllegalMove(): when move cannot be made
+        """
+        # TODO check for check, checkmate
+        new_board = Board(self._pieces)
+        if target in new_board:
+            # there is something on the board
+            if new_board[target].color == piece_.color:
+                raise IllegalMoveError("Cannot capture own piece {self[target]}")
+            else:
+                # capturing the piece
+                new_board.capture(new_board[target])
+        new_board.remove(piece_)
+        piece_ = piece_.move_to(target)
+        new_board.add(piece_)
+        return new_board
 
     def print(self, unicode=True):
         """Print the board
@@ -216,6 +309,8 @@ class Board:
         # TODO
         # - :param inverted: invert colors for unicode (useful for White-on-Black terminals)
         # - for interactive mode, print up-side-down
+        # - use .__iter__()
+        # - show captured
 
         print('  abcdefgh  ')
         for y in reversed(range(BOARD_LEN)):

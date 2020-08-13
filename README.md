@@ -1,6 +1,26 @@
 # wuki
 _a toy chess engine_
 
+## How to Run
+A commandline application is supplied to continue a game from a supplied match
+file. The file contains moves in [Algebraic Notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)),
+a pair of moves per line
+
+	e4 e5
+	Nf3 Nc6
+	Bb5 a6
+
+The file is supplied as a commandline argument.
+
+	$ bin/wuki match.txt
+
+For information about other arguments, ask `bin/wuki --help`.
+
+## Use the Library
+For now you gotta read the source. The commandline application is in
+`wuki/__init_.py:main()`. The main game logic in `wuki/game.py`.
+
+
 ## TODO
 - general
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
@@ -9,12 +29,8 @@ _a toy chess engine_
 		- en passent
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
-- parse game file
-	- setup initial board
-	- store all pieces and their positions (build index)
-	- regex parse each move line
-	- move each piece (check validity) (pawn promotion, castling, en passent)
-	- store each board position separately
+		- game end
+		- remis!
 - find next move
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
@@ -35,8 +51,8 @@ _a toy chess engine_
 			- attacks
 			- cover
 - visualization
-	- unicode for TUI
 	- matplotlib for pdf game output
+	- wxpython gui
 - package
 	- sphinx docs
 	- automated tests

@@ -2,16 +2,23 @@ import re
 
 from . import piece
 from .board import White, Black, Square, Board
+from .errors import WrongPlayerError, MoveParseError
+
 
 class Game:
+    """Holds all information about a game.
+
+    A list of moves in Algebraic Notation is parsed and for each move the
+    resulting board position is generated. A new move can be added by
+    callgin `.make_move`.
+    """
+    FIRST_PLAYER = White
+
     def __init__(self, moves):
         """Create a game from an array of algebraic notation moves
 
         :param moves: array of moves in [algebraic notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess))
         """
-        self.moves = moves
-        # TODO figure out from game state
-        self.own_color = White
 
         initial_pieces = []
         for color, row, direction in zip([White, Black], [1, 8], [+1, -1]):
@@ -28,13 +35,109 @@ class Game:
             initial_pieces.extend([piece.Piece(piece.Pawn(color), color, Square(col, row+direction)) for col in "abcdefgh"])
         self.boards = [Board(initial_pieces)]
 
+        self.current_player = self.FIRST_PLAYER
+        self.moves = list()
+        for round_ in moves:
+            current_round = round_.split(' ')
+            for move in current_round:
+                piece_, target = self.parse_move(move)
+                self.moves.append((piece_, target))
+                new_board = self.boards[-1].make_move(piece_, target)
+                self.boards.append(new_board)
+                self.current_player = ~self.current_player
 
     def __repr__(self):
         return f"<Game moves={len(self.moves)} own_color={sefl.own_color}>"
 
+    def _move_str(self, move):
+        """Format a move tuple (Piece, Square target) into `a3Qa8`."""
+        return '{}{}{}'.format(move[0].position, move[0].letter.upper(), move[1])
+
     def __str__(self):
         """Algebraic notation of the whole game"""
-        return '\n'.join(self.moves)
+        moves = [self._move_str(m) for m in self.moves]
+        return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))
 
-    def print_current_board(self, unicode=True, inverted=False):
+    def parse_move(self, move, current_player=None, board=None):
+        """Parse a move string in Algebraic Notation and returns the piece to
+        be moved and the target squere it should be moved to.
+
+        :param str move: Move in the format
+            `<source_piece>?<source_file>?<source_row>?<piece>?<target_file><target_row>`
+            `<source_…>` information may be absent or partial source
+            `<piece`> missing means a pawn was moved, capital letter!
+            e.g. 'd3Qd5' or 'ed5'
+        :param Color current_player: Which player makes the move. Important to
+            determining source square
+        :param Board board: On which board to look for the source square:
+
+        :returns Piece piece: piece to be moved
+        :returns Square target: target square to be moved to
+
+        :raises MoveParseError: when move is not in the correct format
+        """
+        if current_player is None:
+            current_player = self.current_player
+        if board is None:
+            board = self.boards[-1]
+
+        piece_letters = set(p.letter.upper() for p in self.boards[0].pieces())
+        move_re = ( "(?P<source_file>[a-h])?"        # source file/col  a
+                    "(?P<source_rank>[1-8])?"        # source rank/row  5
+                    f"(?P<piece>[{piece_letters}]?)" # piece letter     Q
+                    "(?P<target_file>[a-h])"         # target file/col  a
+                    "(?P<target_rank>[1-8])"         # target rank/row  9
+                    )
+        try:
+            matches = re.match(move_re, move).groupdict()
+            piece_id = matches['piece'] if matches['piece'] else 'P'
+            target = Square(matches['target_file'], int(matches['target_rank']))
+            if ('source_file' in matches and matches['source_file']
+                and 'source_rank' in matches and matches['source_rank']):
+                source = Square(matches['source_file'], int(matches['source_rank']))
+                piece_ = board[source]
+            else:
+                possible_pieces = board.pieces()
+                possible_pieces = [p for p in possible_pieces if p.color == current_player]
+                possible_pieces = [p for p in possible_pieces if p.letter.upper() == piece_id]
+                possible_pieces = [p for p in possible_pieces if target in p.possible_moves(board=board)]
+                if 'source_file' in matches and matches['source_file']:
+                    possible_pieces = [p for p in possible_pieces if p.position.file == matches['source_file']]
+                if 'source_rank' in matches and matches['source_rank']:
+                    possible_pieces = [p for p in possible_pieces if p.position.rank == matches['source_rank']]
+                possible_pieces = list(possible_pieces)
+
+                if len(possible_pieces) == 1:
+                    piece_ = possible_pieces[0]
+                else:
+                    raise MoveParseError('Source piece inference not possible')
+            if not piece_id == piece_.letter.upper():
+                raise MoveParseError("Specified source piece and piece on that square do not match (is {piece.letter().upper()})")
+            if not current_player == piece_.color:
+                raise MoveParseError("Color of piece at source square does not match current player")
+        except Exception as e:
+            raise MoveParseError(f"Malformed move '{move}': {e}")
+        return piece_, target
+
+    def make_move(self, piece, target):
+        """Move on the current board.
+
+        :param Piece piece: the piece that is supposed to be moved. It includes
+            its position on the board
+        :param Square target: the square the piece to be moved to
+
+        :raises IllegalMoveError: when move cannot be made
+        :raises WrongPlayerError: when the color of the pieces is not the one
+            of the current player
+        """
+        # TODO ignore_color option?
+        if piece.color != self.current_player:
+            raise WrongPlayerError(f"current player: {self.current_layer}")
+        self.boards.append(self.boards[-1].make_move())
+
+    def print_current_board(self, unicode=True):
+        """Print the current board.
+
+        :param unicode: wether to use unicode or ascii symbols
+        """
         self.boards[-1].print(unicode)

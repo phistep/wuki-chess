@@ -24,5 +24,13 @@ def main():
         game = Game(moves)
         print(game)
         print()
+        #game.boards[0].print()
+        #print()
+        #for board, move in zip(game.boards[1:], game.moves):
+        #    print(move)
+        #    board.print(unicode=not args.ascii)
+        #    print()
         game.print_current_board(unicode=not args.ascii)
+        print()
+        print('next:', game.current_player)
 

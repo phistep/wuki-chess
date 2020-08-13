@@ -13,7 +13,6 @@ class AbstractPiece:
 
     def __eq__(self, other):
         if isinstance(other, AbstractPiece):
-            print('compare two pieces')
             return self.name == other.name
         else:
             return False
@@ -27,6 +26,7 @@ class Piece(AbstractPiece):
     """Instantiation of general piece type on the board"""
 
     def __init__(self, piece, color, position):
+        self.piece = piece
         self.name = piece.name
         self.color = color
         self.letter = piece.letter.upper() if color is White else piece.letter.lower()
@@ -34,6 +34,8 @@ class Piece(AbstractPiece):
         self._piece_moves = piece.possible_moves
         if not isinstance(position, Square):
             position = Square(position)
+        if not position.within_board():
+            raise ValueError("Piece can only be initialized on a square within the board")
         self.position = position
 
     def __str__(self):
@@ -42,11 +44,24 @@ class Piece(AbstractPiece):
     def __repr__(self):
         return f"<{self.name} color={self.color} position={self.position}>"
 
-    def possible_moves(self, position=None):
-        if position:
-            return self._piece_moves(position)
+    def __eq__(self, other):
+        """Two Pieces have to be of the same kind, color and on the same
+        position on the board. A Piece and an AbstractPiece have to share the
+        type.
+        """
+        if isinstance(other, Piece):
+            return self.name == other.name and self.position == other.position and self.color == other.color
+        elif isinstance(other, AbstractPiece):
+            return self.name == other.name
         else:
-            return self._piece_moves(self.position)
+            return False
+
+    def possible_moves(self, board=None):
+        return self._piece_moves(self.position, board=board)
+
+    def move_to(self, target):
+        """Does not mutate but returns new piece"""
+        return Piece(self.piece, self.color, target)
 
 
 class King(AbstractPiece):
@@ -100,7 +115,7 @@ class Rook(AbstractPiece):
 
 
 class Bishop(AbstractPiece):
-    """Bishop moves any number of sqaures diagonally."""
+    """Bishop moves any number of squares diagonally."""
 
     def __init__(self):
         self.name = "Bishop"
@@ -108,7 +123,9 @@ class Bishop(AbstractPiece):
         self.symbol = {White:'♗', Black:'♝'}
 
     def possible_moves(self, position, board=None):
-        return diagonals(position).discard(position)
+        moves = position.diagonals()
+        moves.discard(position)
+        return moves
 
 
 class Knight(AbstractPiece):
@@ -120,17 +137,17 @@ class Knight(AbstractPiece):
         self.symbol = {White:'♘', Black:'♞'}
 
     def possible_moves(self, position, board=None):
-        verticals   = [(position[0]+step, position[1])      for step in [-2,+2]]
-        horizontals = [(position[0],      position[1]+step) for step in [-2,+2]]
-        moves  = [(pos[0],      pos[1]+step) for pos in verticals   for step in [-1,+1]]
-        moves += [(pos[0]+step, pos[1])      for pos in horizontals for step in [-1,+1]]
+        verticals   = [position + (step, 0)      for step in [-2,+2]]
+        horizontals = [position + (0, step) for step in [-2,+2]]
+        moves  = [pos + (0, step) for pos in verticals   for step in [-1,+1]]
+        moves += [pos + (step, 0) for pos in horizontals for step in [-1,+1]]
         moves = list(filter(within_board, moves))
         return moves
 
 
 class Pawn(AbstractPiece):
     """Pawn moves one square forward depending on its color.
-    If it has not moved yet, it may instead move two sqaures.
+    If it has not moved yet, it may instead move two squares.
     It can move one square diagonally if its captuiring an opponent's pieces by doing so.
     If it reaches its respecitve last row, it can be promoted to any other piece.
     """
@@ -156,14 +173,14 @@ class Pawn(AbstractPiece):
             direction = -1
             opponent_row = 0
             starting_row = 6
-        if position[1] == opponent_row:
+        if position.y == opponent_row:
             return []
-        if position[1] == starting_row:
+        if position.y == starting_row:
             # starting row, can move two squares
             distance.append(2)
-        moves = [(position[0], position[1]+direction*dist) for dist in distance]
+        moves = [position + (0, direction*dist) for dist in distance]
         # TODO test capturing
-        captures = [(position[0]+d, position[1]+direction) for d in [-1,+1]]
+        captures = [position + (d, direction) for d in [-1,+1]]
         captures = list(filter(lambda p: p in board and p.color is not self.color, captures))
         moves = set(filter(within_board, moves+captures))
         return moves
