@@ -44,7 +44,6 @@ def test_Game_init_empty():
     initial_pieces.extend([piece.Piece(piece.Pawn(White), White, Square(col, 2)) for col in "abcdefgh"])
     initial_pieces.extend([piece.Piece(piece.Pawn(Black), Black, Square(col, 7)) for col in "abcdefgh"])
     initial_board = Board(initial_pieces)
-    # TODO something with the comparison does not work
     assert game.boards[-1] == initial_board
     assert game.current_player == Game.FIRST_PLAYER
     assert len(game.moves) == 0

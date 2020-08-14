@@ -27,11 +27,17 @@ For now you gotta read the source. The commandline application is in
 	- `Board.possible_moves(player=self.current_player)`
 	- rules
 		- movement can be blocked by other pieces along the way (`Piece.possible_moves()` not `AbstractPiece.legal_moves()`)
+			- Pawns can't capture forward
+			- Kings can't move themsleves into check
+			- Knights don't care
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
 		- game end
 		- remis!
 		- en passent
+	- show captured in Board.print
+	- interactive session
+	- Board.print() option for shading squares
 - find next move
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`

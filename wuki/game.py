@@ -100,6 +100,7 @@ class Game:
                 possible_pieces = board.pieces()
                 possible_pieces = [p for p in possible_pieces if p.color == current_player]
                 possible_pieces = [p for p in possible_pieces if p.letter.upper() == piece_id]
+                #print({p: p.possible_moves(board) for p in possible_pieces})
                 possible_pieces = [p for p in possible_pieces if target in p.possible_moves(board=board)]
                 if 'source_file' in matches and matches['source_file']:
                     possible_pieces = [p for p in possible_pieces if p.position.file == matches['source_file']]

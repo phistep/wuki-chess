@@ -58,7 +58,7 @@ class Piece(AbstractPiece):
         self.position = position
 
     def __str__(self):
-        return self.letter+str(self.position)
+        return str(self.position)+self.letter
 
     def __repr__(self):
         return f"<{self.name} color={self.color} position={self.position}>"
@@ -79,15 +79,46 @@ class Piece(AbstractPiece):
         return hash((self.letter, self.color, self.position))
 
     def possible_moves(self, board):
-        """Returns a list of possible moves of the piece. Some pieces need
-        information about the board for this.
+        """Returns a list of possible moves of the piece. All legal moves
+        within the movement pattern of the respective piece are considered.
+        All squares that are blocked off by other pieces are removed.
 
         :param Board board: the board on which the piece needs to find its
             possible moves
 
         :returns moves: a list of Sqaures that the piece could move to
         """
-        return self.piece.legal_moves(self.position, board)
+        mover = self.position
+        legal_moves = self.piece.legal_moves(self.position, board)
+        possible_moves = legal_moves.copy()
+        if self == Knight():
+            # Knights don't get blocked by other pieces
+            pass
+        elif self == King():
+            # Kings cannot move themselves into check
+            # TODO Kings can castle under specific circumstances
+            #raise Warning("King movement not according to rules")
+            # TODO
+            pass
+        elif self == Pawn(self.color):
+            # Pawns cannot capture where they walk, oppeonent pieces block them
+            #raise Warning("Pawn movement not accroding to rules")
+            # TODO
+            pass
+        else:
+            # remove orthogonally blocked squares
+            # remove diagonally blocked squares
+            for blocker in [s for s in legal_moves if s in board]:
+                for blocked in [s for s in legal_moves if s.blocked_by(mover, blocker)]:
+                    possible_moves.discard(blocked)
+                if board[blocker].color == self.color:
+                    # own pieces block, but cannot be captured. their squares
+                    # are inaccessable
+                    possible_moves.discard(blocker)
+                else:
+                    # this piece blocks, but can be captured
+                    possible_moves.add(blocker)
+        return possible_moves
 
     def move_to(self, target, board):
         """Does not mutate but returns new piece
@@ -99,7 +130,7 @@ class Piece(AbstractPiece):
         :raises IllegalMoveError: if move is not possible for te piece
         """
         if target not in self.possible_moves(board):
-            raise IllegalMoveError
+            raise IllegalMoveError(str(self)+str(target))
         return Piece(self.piece, self.color, target)
 
 

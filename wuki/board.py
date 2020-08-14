@@ -1,3 +1,5 @@
+from math import sqrt
+
 from . import piece
 from .errors import IllegalMoveError
 
@@ -138,6 +140,55 @@ class Square:
         horizontal = [Square(x, self.y) for x in range(BOARD_LEN)]
         vertical =   [Square(self.x, y) for y in range(BOARD_LEN)]
         return set(horizontal + vertical)
+
+    def dist(self, other):
+        """Euclidean distance between this square and another.
+        
+        :param Square other: the square to measure distance to. Can also be
+            provided as 2-tuple, which gets casted to Square
+
+        :returns float dist: euclidean distance sqrt(dx**2 + dy**2)
+        """
+        if isinstance(other, tuple) and len(other) == 2:
+            other = Square(other)
+        if not isinstance(other, Square):
+            raise TypeError("Distance has to be between two Squares or a 2-tuple")
+        return sqrt( (self.x-other.x)**2 + (self.y-other.y)**2 )
+
+    def blocked_by(self, mover, blocker):
+        """Check if `blocker` blocks `mover` from moving to `self` in a streight
+        line.
+
+        :param Square mover: the position from which the piece in question
+            makes a move
+        :param Square blocker: position which has a piece that could block the
+            move
+
+        :returns bool blocked: wether blocker blocks mover from moving to self
+        """
+        # unfortunately, this easy solution does _not_ work
+        #return mover.dist(self) > mover.dist(blocker)
+
+        # horizontals
+        if (self.x == mover.x == blocker.x
+            and   (mover.y < blocker.y < self.y
+                or mover.y > blocker.y > self.y)):
+            return True
+        # verticals
+        elif (self.y == mover.y == blocker.y
+            and   (mover.x < blocker.x < self.x
+                or mover.x > blocker.x > self.x)):
+            return True
+        # diagonals
+        elif ((self in mover.diagonals() and blocker in mover.diagonals())
+            and    (mover.x < blocker.x < self.x and mover.y < blocker.y < self.y)   # NE
+                or (mover.x < blocker.x < self.x and mover.y > blocker.y > self.y)   # SE
+                or (mover.x > blocker.x > self.x and mover.y < blocker.y < self.y)   # NW
+                or (mover.x > blocker.x > self.x and mover.y > blocker.y > self.y)): # SW
+            return True
+        else:
+            return False
+
 
 def within_board(x, y=None):
     return Square(x,y).within_board()

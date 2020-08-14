@@ -1,4 +1,6 @@
 import pytest
+from math import sqrt
+
 from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
 from ..piece import Piece, Queen, King
 from ..errors import IllegalMoveError
@@ -126,6 +128,14 @@ def test_Square_orthogonals():
     sq = Square('c', 7)
     assert sq.orthogonals() == set([Square(x, sq.y) for x in range(BOARD_LEN)]) | set([Square(sq.x, y) for y in range(BOARD_LEN)])
 
+def test_Sqaure_dist():
+    assert Square(0,0).dist(Square(1,0)) == 1.
+    assert Square(0,0).dist(Square(0,3)) == 3.
+    assert Square(0,0).dist(Square(5,5)) == 5*sqrt(2)
+
+@pytest.mark.skip(reaseon="test not implemented")
+def tst_Square_blocket_by():
+    assert False
 
 def test_Board_init():
     pos = Square('d', 5)
@@ -294,7 +304,7 @@ def test_Bord_make_move_capture():
     piece_b = Piece(Queen(), ~color, pos_b)
     board = Board([piece_a, piece_b])
     new_board = board.make_move(piece_a, pos_b)
-    assert new_board[pos_b] == piece_a.move_to(pos_b, new_board)
+    assert new_board[pos_b] == piece_a.move_to(pos_b, board)
     assert piece_b not in new_board
     assert piece_b in new_board.captured[~color]
 
