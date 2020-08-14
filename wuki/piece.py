@@ -102,12 +102,17 @@ class Piece(AbstractPiece):
             pass
         elif self == Pawn(self.color):
             # Pawns cannot capture where they walk, oppeonent pieces block them
-            #raise Warning("Pawn movement not accroding to rules")
-            # TODO
-            pass
+            one_step = self.position + (0, 1*self.color.direction)
+            two_step = self.position + (0, 2*self.color.direction)
+            if one_step in board:
+                possible_moves.discard(one_step)
+                # if square in front is taken, pawn cann also not walk two steps
+                possible_moves.discard(two_step)
+            if two_step in board:
+                possible_moves.discard(two_step)
         else:
-            # remove orthogonally blocked squares
-            # remove diagonally blocked squares
+            # remove orthogonally and diagonally blocked squares for all other
+            # pieces, opponent pieces block, but can be captured
             for blocker in [s for s in legal_moves if s in board]:
                 for blocked in [s for s in legal_moves if s.blocked_by(mover, blocker)]:
                     possible_moves.discard(blocked)
@@ -223,13 +228,14 @@ class Pawn(AbstractPiece):
     It can move one square diagonally if its captuiring an opponent's pieces by doing so.
     If it reaches its respecitve last row, it can be promoted to any other piece.
     """
-    # TODO add color to super().__repr__()
-
     def __init__(self, color):
         self.name = "Pawn"
         self.letter = 'P'
         self.color = color
         self.symbol = {White:'♙', Black:'♟'}
+
+    def __repr__(self):
+        return super().__repr__()[:-1]+f" color={self.color}>"
 
     def __hash__(self):
         return hash((self.name, self.color))
@@ -237,25 +243,16 @@ class Pawn(AbstractPiece):
     def legal_moves(self, position, board):
         # TODO en passent
         # TODO promotion (raise exception?)
-        # TODO two square movement not allowed when blocked by piece
         distance = [1]
-        # TODO move this into PlayerColor? or Square/PiecePosition?
-        if self.color is White:
-            direction = +1
-            opponent_row = 7
-            starting_row = 1
-        else:
-            direction = -1
-            opponent_row = 0
-            starting_row = 6
-        if position.y == opponent_row:
+        if position.y == (~self.color).home_rank: # opponent row
+            # opponent home row, pawn promotion
             return set([])
-        if position.y == starting_row:
+        if position.y == self.color.home_rank+self.color.direction:
             # starting row, can move two squares
             distance.append(2)
-        moves = [position + (0, direction*dist) for dist in distance]
-        captures = [position + (d, direction) for d in [-1,+1]]
-        captures = list(filter(lambda p: p in board and p.color is not self.color, captures))
+        moves = [position + (0, self.color.direction*dist) for dist in distance]
+        captures = [position + (d, self.color.direction) for d in [-1,+1]]
+        captures = [sq for sq in captures if sq in board and board[sq].color is not self.color]
         moves = set(filter(within_board, moves+captures))
         return moves
 

@@ -126,12 +126,18 @@ def test_Piece_possible_moves_blocked_ortho():
     pieces = [Piece(Rook(), White, pos), Piece(Pawn(White), White, pos+(2,0)), Piece(Pawn(White), White, pos+(0,2))]
     assert pieces[0].possible_moves(Board(pieces)) == set([pos+(1,0), pos+(0,1)])
 
+def test_Piece_possible_moves_Pawn():
+    pos = Square('a',2)
+    pieces = [Piece(Pawn(White), White, pos), Piece(Pawn(White), Black, pos+(0,1)), Piece(Pawn(White), Black, pos+(1,1))]
+    assert pieces[0].possible_moves(Board(pieces)) == set([pos+(1,1)])
+    pieces = [Piece(Pawn(White), White, pos), Piece(Pawn(White), Black, pos+(0,2))]
+    assert pieces[0].possible_moves(Board(pieces)) == set([pos+(0,1)])
+
 def test_Piece_possible_moves_blocked_Knight():
     pos = Square('a',1)
     pieces = [Piece(Knight(), White, pos), Piece(Pawn(White), White, pos+(1,1))]
     assert pieces[0].possible_moves(Board(pieces)) == set([pos+(1,2), pos+(2,1)])
 
-# TODO
 @pytest.mark.skip(reaseon="not implemented")
 def test_Piece_possible_moves_King_check():
     assert False
@@ -260,6 +266,11 @@ def test_Pawn_init():
     assert pawn.symbol[White] == '♙'
     assert pawn.symbol[Black] == '♟'
     assert pawn.color == color
+
+def test_Pawn_repr():
+    color = White
+    assert repr(Pawn(color)) == f"<AbstractPiece Pawn (P) color={color}>"
+
 
 def test_Pawn_legal_moves():
     pawn_w = Pawn(White)

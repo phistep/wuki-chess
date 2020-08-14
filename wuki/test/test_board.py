@@ -11,6 +11,12 @@ def test_Color_constants():
     assert white == White
     assert black == Black
 
+def test_Color_attributes():
+    assert White.direction == +1
+    assert White.home_rank == 0
+    assert Black.direction == -1
+    assert Black.home_rank == BOARD_LEN-1
+
 def test_Color_negation():
     assert ~White == Black
     assert ~Black == White
@@ -128,14 +134,35 @@ def test_Square_orthogonals():
     sq = Square('c', 7)
     assert sq.orthogonals() == set([Square(x, sq.y) for x in range(BOARD_LEN)]) | set([Square(sq.x, y) for y in range(BOARD_LEN)])
 
-def test_Sqaure_dist():
+def test_Square_dist():
     assert Square(0,0).dist(Square(1,0)) == 1.
     assert Square(0,0).dist(Square(0,3)) == 3.
     assert Square(0,0).dist(Square(5,5)) == 5*sqrt(2)
 
-@pytest.mark.skip(reaseon="test not implemented")
-def tst_Square_blocket_by():
-    assert False
+def test_Square_dist_cast():
+    assert Square(0,0).dist((1,0)) == 1.
+    with pytest.raises(TypeError):
+        Square(0,0).dist("string")
+
+def test_Square_blocket_by_ortho():
+    board = Board([])
+    mover = Square(3,3)
+    blocker = Square(3,5)
+    blocked = set([square for square, _ in board if square.blocked_by(mover, blocker)])
+    assert blocked == set([Square(3,6), Square(3,7)])
+    blocker = Square(2,3)
+    blocked = set([square for square, _ in board if square.blocked_by(mover, blocker)])
+    assert blocked == set([Square(1,3), Square(0,3)])
+
+def test_Square_blocket_by_diag():
+    board = Board([])
+    mover = Square(3,3)
+    blocker = Square(5,5)
+    blocked = set([square for square, _ in board if square.blocked_by(mover, blocker)])
+    assert blocked == set([Square(6,6), Square(7,7)])
+    blocker = Square(1,1)
+    blocked = set([square for square, _ in board if square.blocked_by(mover, blocker)])
+    assert blocked == set([Square(0,0)])
 
 def test_Board_init():
     pos = Square('d', 5)

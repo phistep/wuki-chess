@@ -12,6 +12,8 @@ class Color:
 
     def __init__(self, color):
         self.color = color
+        self.direction = [+1,-1][color]
+        self.home_rank = [0,BOARD_LEN-1][color]
 
     def __str__(self):
         """One letter representation of the color"""
@@ -211,7 +213,6 @@ class Board:
         # TODO check if two pieces are on the same square
         # TODO check if pieces are within board
         self._pieces = set(pieces)
-        # TODO default dict?
         self.index = dict()
         for piece_ in self._pieces:
             self.index[piece_.position] = piece_
