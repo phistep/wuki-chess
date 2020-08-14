@@ -357,6 +357,9 @@ def test_Board_print(capsys):
 2  █ █ █ █ 2
 1 █ █ █ █  1
   abcdefgh  
+captured:
+  white: none
+  black: none
 """
 
 def test_Board_print_ascii(capsys):
@@ -372,4 +375,81 @@ def test_Board_print_ascii(capsys):
 2  # # # # 2
 1 # # # #  1
   abcdefgh  
+captured:
+  white: none
+  black: none
+"""
+
+def test_Board_print_mark(capsys):
+    Board([]).print(mark=[(0,0), (0,1), (1,0), (1,1)])
+    assert capsys.readouterr().out == """  abcdefgh  
+8  █ █ █ █ 8
+7 █ █ █ █  7
+6  █ █ █ █ 6
+5 █ █ █ █  5
+4  █ █ █ █ 4
+3 █ █ █ █  3
+2 ░▓ █ █ █ 2
+1 ▓░█ █ █  1
+  abcdefgh  
+captured:
+  white: none
+  black: none
+"""
+
+def test_Board_print_mark_ascii(capsys):
+    Board([]).print(unicode=False, mark=[(0,0), (0,1), (1,0), (1,1)])
+    assert capsys.readouterr().out == """  abcdefgh  
+8  # # # # 8
+7 # # # #  7
+6  # # # # 6
+5 # # # #  5
+4  # # # # 4
+3 # # # #  3
+2 .@ # # # 2
+1 @.# # #  1
+  abcdefgh  
+captured:
+  white: none
+  black: none
+"""
+
+def test_Board_print_captured(capsys):
+    piece = Piece(Queen(), White, Square('d', 5))
+    board = Board([piece])
+    board.capture(piece)
+    board.print()
+    assert capsys.readouterr().out == """  abcdefgh  
+8  █ █ █ █ 8
+7 █ █ █ █  7
+6  █ █ █ █ 6
+5 █ █ █ █  5
+4  █ █ █ █ 4
+3 █ █ █ █  3
+2  █ █ █ █ 2
+1 █ █ █ █  1
+  abcdefgh  
+captured:
+  white: ♕
+  black: none
+"""
+
+def test_Board_print_mark_ascii(capsys):
+    piece = Piece(Queen(), White, Square('d', 5))
+    board = Board([piece])
+    board.capture(piece)
+    board.print(unicode=False)
+    assert capsys.readouterr().out == """  abcdefgh  
+8  # # # # 8
+7 # # # #  7
+6  # # # # 6
+5 # # # #  5
+4  # # # # 4
+3 # # # #  3
+2  # # # # 2
+1 # # # #  1
+  abcdefgh  
+captured:
+  white: Q
+  black: none
 """

@@ -357,35 +357,38 @@ class Board:
         new_board.add(piece_)
         return new_board
 
-    def print(self, unicode=True):
+    def print(self, unicode=True, mark=[]):
         """Print the board
 
         :param unicode: use unicode symbols
-
+        :param mark: list of Sqaures to be marked (drawn in a shaded color)
         """
         # TODO
         # - :param inverted: invert colors for unicode (useful for White-on-Black terminals)
         # - for interactive mode, print up-side-down
-        # - use .__iter__()
-        # - show captured
+
+        if unicode:
+            square_symbol = {White: ' ', Black: '█'}
+            square_symbol_marked = {White: '░', Black: '▓'}
+        else:
+            square_symbol = {White: ' ', Black: '#'}
+            square_symbol_marked = {White: '.', Black: '@'}
 
         print('  abcdefgh  ')
         for y in reversed(range(BOARD_LEN)):
             print(y+1, end=' ')
             for x in range(BOARD_LEN):
-                pos = Square(x,y)
-                if pos in self.index:
-                    if unicode:
-                        symbol = self.index[pos].symbol
-                    else:
-                        symbol = self.index[pos].letter
+                square = Square(x,y)
+                if square in self:
+                    symbol = self[square].symbol if unicode else self[square].letter
                 else:
-                    if unicode:
-                        symbol = '█' if pos.color() == Black else ' '
-                    else:
-                        symbol = '#' if pos.color() == Black else ' '
+                    symbol = square_symbol_marked[square.color()] if square in mark else square_symbol[square.color()]
                 print(symbol, end='')
             print('', y+1)
         print('  abcdefgh  ')
+        print('captured:')
+        for color in [White,Black]:
+            captured_symbols = [p.symbol if unicode else p.letter for p in self.captured[color]]
+            print(f'  {color}:', ' '.join(captured_symbols) if captured_symbols else 'none')
 
 

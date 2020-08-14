@@ -35,7 +35,6 @@ For now you gotta read the source. The commandline application is in
 		- game end
 		- remis!
 		- en passent
-	- show captured in Board.print
 	- check game state function
 		try:
 			game.check_state()?
@@ -45,7 +44,6 @@ For now you gotta read the source. The commandline application is in
 		Exception GameOver
 			.winner # <Black> or <White> or None
 			.type # Remis or CheckMate or TimeOut
-	- Board.print() option for shading squares full:█ light:░ dark:▓, full terminal color support?
 - find next move
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
@@ -77,7 +75,12 @@ For now you gotta read the source. The commandline application is in
 			- markers for check etc.
 	- interactive mode
 		- auto save to matchfile
-		- type "save <file_name>" to save to file
+		- commands
+			- "help" for this help
+			- just a move
+			- "save <file_name>" to save to file
+			- "show <piece>" to highlight possible moves
+			- "exit", "quit" to leave
 		- two player or ai mode
 		- timestamps and time constraint
 		- restore input on `IllegalMoveError` or `MoveParseError`
