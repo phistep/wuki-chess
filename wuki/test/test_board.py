@@ -2,7 +2,7 @@ import pytest
 from math import sqrt
 
 from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
-from ..piece import Piece, Queen, King
+from ..piece import Piece, Queen, King, Pawn
 from ..errors import IllegalMoveError
 
 def test_Color_constants():
@@ -13,9 +13,9 @@ def test_Color_constants():
 
 def test_Color_attributes():
     assert White.direction == +1
-    assert White.home_rank == 0
+    assert White.home_y == 0
     assert Black.direction == -1
-    assert Black.home_rank == BOARD_LEN-1
+    assert Black.home_y == BOARD_LEN-1
 
 def test_Color_negation():
     assert ~White == Black
@@ -265,7 +265,7 @@ def test_Board_add():
     pos = Square('d', 5)
     piece_ = Piece(Queen(), White, pos)
     added = board.add(piece_)
-    assert added == board.pieces()
+    assert board.pieces() == {added}
     assert board.pieces() == {piece_}
     assert piece_ in board
     assert pos in board
@@ -343,6 +343,20 @@ def  test_Bord_make_move_capture_self():
     with pytest.raises(IllegalMoveError):
         board.make_move(pieces[0], pos_b)
 
+def test_Board_possible_moves():
+    pieces = [Piece(Queen(), White, Square('a',1)), Piece(Pawn(White), White, Square('b',2)), Piece(Pawn(Black), Black, Square('b',7))]
+    board = Board(pieces)
+    assert board.possible_moves(White) == pieces[0].possible_moves(board) | pieces[1].possible_moves(board)
+    assert Board(pieces).possible_moves(Black) == pieces[2].possible_moves(board)
+
+def test_Board_possible_moves_give_check_King():
+    assert Board([Piece(King(), White, Square('a',1))]).possible_moves(White, give_check=True) == set()
+
+def test_Board_possible_moves_give_check_Pawn():
+    pos = Square('d',2)
+    color = White
+    board = Board([Piece(Pawn(color), color, pos)])
+    assert board.possible_moves(color, give_check=True) == Pawn(color).legal_moves(pos, board, only_attacked=True)
 
 def test_Board_print(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])

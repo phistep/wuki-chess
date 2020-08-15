@@ -95,11 +95,22 @@ class Piece(AbstractPiece):
             # Knights don't get blocked by other pieces
             pass
         elif self == King():
-            # Kings cannot move themselves into check
             # TODO Kings can castle under specific circumstances
-            #raise Warning("King movement not according to rules")
-            # TODO
-            pass
+            # Kings cannot move themselves into check
+            for square_in_check in board.possible_moves(~self.color, give_check=True):
+                possible_moves.discard(square_in_check)
+            try:
+                # treat opponent King separately to avoid infinite recursion
+                # use opponent's King's `.legal_moves` instead of possible_moves
+                # to avoid recursion. Wether blocked or not, two Kings can
+                # never sit adjacent.
+                opponent_king = [p for p in board.pieces(King()) if p.color is not self.color][0]
+                for square_in_check in opponent_king.piece.legal_moves(opponent_king.position, board):
+                    possible_moves.discard(square_in_check)
+            except:
+                # Board has no opponent King. While not being legal, this can
+                # happend for debug/testing purposes and we don't care
+                pass
         elif self == Pawn(self.color):
             # Pawns cannot capture where they walk, oppeonent pieces block them
             one_step = self.position + (0, 1*self.color.direction)
@@ -240,19 +251,26 @@ class Pawn(AbstractPiece):
     def __hash__(self):
         return hash((self.name, self.color))
 
-    def legal_moves(self, position, board):
+    def legal_moves(self, position, board, only_attacked=False):
+        """:param bool only_attacked: outputs only the attacked squares which the
+            pawn could capture and not the ones it could move to (for all other
+            pieces the two sets are idential)
+        """
         # TODO en passent
         # TODO promotion (raise exception?)
+        captures = [position + (d, self.color.direction) for d in [-1,+1]]
+        if only_attacked:
+            return set(filter(within_board, captures))
+        captures = [sq for sq in captures if sq in board and board[sq].color is not self.color]
+
         distance = [1]
-        if position.y == (~self.color).home_rank: # opponent row
+        if position.y == (~self.color).home_y: # opponent row
             # opponent home row, pawn promotion
             return set([])
-        if position.y == self.color.home_rank+self.color.direction:
+        if position.y == self.color.home_y+self.color.direction:
             # starting row, can move two squares
             distance.append(2)
         moves = [position + (0, self.color.direction*dist) for dist in distance]
-        captures = [position + (d, self.color.direction) for d in [-1,+1]]
-        captures = [sq for sq in captures if sq in board and board[sq].color is not self.color]
         moves = set(filter(within_board, moves+captures))
         return moves
 

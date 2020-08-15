@@ -1,6 +1,6 @@
 from math import sqrt
 
-from . import piece
+from . import piece as pc
 from .errors import IllegalMoveError
 
 BOARD_LEN = 8
@@ -13,7 +13,7 @@ class Color:
     def __init__(self, color):
         self.color = color
         self.direction = [+1,-1][color]
-        self.home_rank = [0,BOARD_LEN-1][color]
+        self.home_y = [0,BOARD_LEN-1][color]
 
     def __str__(self):
         """One letter representation of the color"""
@@ -92,7 +92,7 @@ class Square:
         if isinstance(other, tuple) and len(other) == 2:
             other = Square(other)
         elif not isinstance(other, Square):
-            raise TypeError("Can only compare Square with Square or 2-tuple")
+            raise TypeError(f"Can only compare Square with Square or 2-tuple, not {type(other)}")
         return self.x == other.x and self.y == other.y
 
     def __add__(self, other):
@@ -214,8 +214,8 @@ class Board:
         # TODO check if pieces are within board
         self._pieces = set(pieces)
         self.index = dict()
-        for piece_ in self._pieces:
-            self.index[piece_.position] = piece_
+        for piece in self._pieces:
+            self.index[piece.position] = piece
         self.captured = {White:set(), Black:set()}
 
     def __repr__(self):
@@ -247,7 +247,7 @@ class Board:
             item = Square(item)
         if isinstance(item, Square):
             return item in self.index
-        elif isinstance(item, piece.AbstractPiece):
+        elif isinstance(item, pc.AbstractPiece):
             # we have to cast to list since set.__contains__ compares hashes
             # and these are different for Piece and AbstractPiece.
             # by forcing the set into a list, Piece.__eq__() is used element-
@@ -273,50 +273,51 @@ class Board:
             raise StopIteration
         return self._iter, self[self._iter] if self._iter in self.index else None
 
-    def remove(self, piece_):
+    def remove(self, piece):
         """Remove a piece from the board.
 
-        :param piece_: the piece to be removed from the board
+        :param piece: the piece to be removed from the board
 
-        :returns piece_: the piece that was removed
+        :returns piece: the piece that was removed
 
         :raises KeyError: if the piece is not on the board
         """
-        del self.index[piece_.position]
-        self._pieces.remove(piece_)
-        assert piece_ not in self
-        assert piece_.position not in self.index
-        return piece_
+        del self.index[piece.position]
+        self._pieces.remove(piece)
+        assert piece not in self
+        assert piece.position not in self.index
+        return piece
 
-    def capture(self, piece_):
+    def capture(self, piece):
         """Capture a piece. It's removed from the board and added to the
         .caputured list.
 
-        :param piece_: the piece to be marked as captured
+        :param piece: the piece to be marked as captured
 
-        :returns piece_: the captured piece
+        :returns piece: the captured piece
         """
-        self.remove(piece_)
-        #piece_.position = None
-        self.captured[piece_.color].add(piece_)
-        return piece_
+        self.remove(piece)
+        # This disables comparisons
+        #piece.position = None
+        self.captured[piece.color].add(piece)
+        return piece
 
-    def add(self, piece_):
+    def add(self, piece):
         """Add a piece to the board.
         
-        :param piece_: the piece to be added
+        :param piece: the piece to be added
 
         :returns pieces: the current list of pieces after the new one was added
 
         :raises ValueError: if the target square already has a piece on it
         """
-        if piece_.position in self:
+        if piece.position in self:
             raise ValueError("Target square already has a piece on it")
-        self._pieces.add(piece_)
-        self.index[piece_.position] = piece_
-        assert piece_ in self
-        assert self.index[piece_.position] == piece_
-        return self._pieces
+        self._pieces.add(piece)
+        self.index[piece.position] = piece
+        assert piece in self
+        assert self.index[piece.position] == piece
+        return piece
 
     def pieces(self, kind=None):
         """Returns a list of all pieces on the board. If kind is given (as an
@@ -330,7 +331,7 @@ class Board:
         else:
             return set([p for p in self._pieces if p == kind])
 
-    def make_move(self, piece_, target, color=None):
+    def make_move(self, piece, target, color=None):
         """Move on the current board and return the new board. This does not
         mutate the current object!
 
@@ -343,19 +344,48 @@ class Board:
         :raises IllegalMoveError: when move cannot be made
         """
         # TODO check for check, checkmate
-        # TODO check for other pieces blocking the way
         new_board = Board(self._pieces)
         if target in new_board:
             # there is something on the board
-            if new_board[target].color == piece_.color:
+            if new_board[target].color == piece.color:
                 raise IllegalMoveError("Cannot capture own piece {self[target]}")
             else:
                 # capturing the piece
                 new_board.capture(new_board[target])
-        new_board.remove(piece_)
-        piece_ = piece_.move_to(target, board=self)
-        new_board.add(piece_)
+        new_board.remove(piece)
+        piece = piece.move_to(target, board=self)
+        new_board.add(piece)
         return new_board
+
+    def possible_moves(self, player, give_check=False):
+        """Return a set of all possible moves a player could make.
+
+        :param Color player: possible moves for this player.
+        :param bool give: Retrun the squares that give check to the _other_
+            player. For pawns, only squares that are under attack not squares
+            that can be moved to are included. Don't take Kings' movement into
+            account. Needed to stop recursion when finding possible moves for a
+            King().possible_moves and stops the recursion.
+
+        :returns: a set of possible moves {(Piece piece, Sqaure target)}
+        """
+        possible_moves = set()
+        for piece in [p for p in self.pieces() if p.color == player]:
+            if give_check and piece == pc.King():
+                # We need to ignore King()s in order to check which squares are
+                # blocked for the other King because people are attacking it.
+                pass
+            elif give_check and piece == pc.Pawn(player):
+                # When returning only the squares that would give check if the
+                # opponent king moved to it, we need to look at the quares a
+                # Pawn can capture at not move to.
+                # we can use Pawn().legal_moves() here, since the only way they
+                # could be blocked (as usually determined by Piece.possible_moves())
+                # is by a friendly piece s
+                possible_moves |= piece.piece.legal_moves(piece.position, self, only_attacked=True)
+            else:
+                possible_moves |= piece.possible_moves(self)
+        return possible_moves
 
     def print(self, unicode=True, mark=[]):
         """Print the board

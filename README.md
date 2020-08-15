@@ -12,7 +12,7 @@ a pair of moves per line
 
 The file is supplied as a commandline argument.
 
-	$ bin/wuki match.txt
+	$ PYTHONPATH=. bin/wuki match.txt
 
 For information about other arguments, ask `bin/wuki --help`.
 
@@ -24,20 +24,33 @@ For now you gotta read the source. The commandline application is in
 ## TODO
 - general
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
-	- `Board.possible_moves(player=self.current_player)`
+	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
+	- Board.pieces(kind=None, color=None) filter for color
 	- rules
-		- movement can be blocked by other pieces along the way (`Piece.possible_moves()` not `AbstractPiece.legal_moves()`)
-			- Pawns can't capture forward
-			- Kings can't move themsleves into check
-			- Knights don't care
+		- check
+			- check has to be terminated
+				- move king out of check
+				- move piece inbetween attacker and king
+			- cannot move a piece that puts your own piece into check
+			-> resulting move has to have not check
+			- no: Board should not contain game logic only piece logic
+				- in Board.make_move(piece_, target): self.check = piece_.color
+				- @property Game.check(): self.boards[-1].check
+			- yes: Game has the game logic
+				- in Game.make_move(piece_, target): self.check = piece_.color
+			- manipulate Game.possible_moves to only include king if self.check == current_player
+		- game end
+			- loose game when Game.possible_moves() is empty
+		- remis!
+			- both players have empty Game.possible_moves()
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
-		- game end
-		- remis!
+			- cannot move when touched
+			- cannot move through check!
 		- en passent
 	- check game state function
 		try:
-			game.check_state()?
+			board.check_state(current_player)?
 		except Remis as e:
 		except CheckMate, TimeOut as e:
 
