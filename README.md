@@ -23,6 +23,7 @@ For now you gotta read the source. The commandline application is in
 
 ## TODO
 - general
+	- Color.__negate__() -> __not__()
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
 	- Board.pieces(kind=None, color=None) filter for color
@@ -51,6 +52,7 @@ For now you gotta read the source. The commandline application is in
 	- check game state function
 		try:
 			board.check_state(current_player)?
+		except Check:
 		except Remis as e:
 		except CheckMate, TimeOut as e:
 
@@ -79,13 +81,11 @@ For now you gotta read the source. The commandline application is in
 			- freedom of movement
 			- control over center
 - cli
-	- implement `--make-move`
-	- move into `cli.py`
-		- parse game into own function (support full Algebraic Notation)
-			- read and write
-			- comments
-			- time
-			- markers for check etc.
+	- parse match_file into own function (support full Algebraic Notation)
+		- read and write
+		- comments
+		- time
+		- markers for check etc.
 	- interactive mode
 		- auto save to matchfile
 		- commands
@@ -101,6 +101,7 @@ For now you gotta read the source. The commandline application is in
 	- localization?
 	- wxpython gui
 	- matplotlib gui?
+	- online mode (host server, play against players/ais)
 - package
 	- sphinx docs
 	- dependencies, installer

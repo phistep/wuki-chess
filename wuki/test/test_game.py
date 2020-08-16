@@ -7,10 +7,7 @@ from ..errors import MoveParseError, WrongPlayerError, IllegalMoveError
 
 @pytest.fixture
 def moves():
-    moves = """e4 e5
-Nf3 Nc6
-Bb5 a6"""
-    return list(filter(None, moves.split('\n')))
+    return ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6']
 
 @pytest.fixture
 def ambigous_game():
@@ -60,12 +57,20 @@ def test_Game_repr(moves):
     assert repr(Game(moves)) == '<Game moves=6 current_player=white>'
 
 def test_Game_str():
-    moves = """e2Pe4 e7Pe5
+    moves_str = """e2Pe4 e7Pe5
 g1Nf3 b8Nc6
 f1Bb5 a7Pa6
 """
-    moves_list = list(filter(None, moves.split('\n')))
-    assert str(Game(moves_list)) == moves
+    moves_list = [move for round_ in moves_str.split('\n') for move in round_.split(' ') if move]
+    print(moves_list)
+    assert str(Game(moves_list)) == moves_str
+    moves_str = """e2Pe4 e7Pe5
+g1Nf3 b8Nc6
+f1Bb5
+"""
+    moves_list = [move for round_ in moves_str.split('\n') for move in round_.split(' ') if move]
+    print(moves_list)
+    assert str(Game(moves_list)) == moves_str
 
 def test_Game_parse_move():
     assert Game([]).parse_move('g1Nf3') == (piece.Piece(piece.Knight(), Game.FIRST_PLAYER, Square('g', 1)), Square('f', 3))
@@ -90,7 +95,7 @@ def test_Game_parse_mave_inference_hint(ambigous_game):
 
 def test_Game_move_str():
     game = Game([])
-    assert game._move_str((piece.Piece(piece.Queen(), White, Square('a',1)),Square('a',3))) == 'a1Qa3'
+    assert game.move_str((piece.Piece(piece.Queen(), White, Square('a',1)),Square('a',3))) == 'a1Qa3'
 
 def test_Game_len_make_move():
     game = Game([])

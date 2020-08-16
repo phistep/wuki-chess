@@ -15,9 +15,9 @@ class Game:
     FIRST_PLAYER = White
 
     def __init__(self, moves):
-        """Create a game from an array of algebraic notation moves
+        """Create a game from an array of [algebraic notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)) moves
 
-        :param moves: array of moves in [algebraic notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess))
+        :param moves: list of single moves in Algebaric Notation
         """
 
         initial_pieces = []
@@ -37,22 +37,28 @@ class Game:
 
         self.current_player = self.FIRST_PLAYER
         self.moves = list()
-        for round_ in moves:
-            current_round = round_.split(' ')
-            for move in current_round:
-                self.make_move(move)
+        for move in moves:
+            self.make_move(move)
 
     def __repr__(self):
         return f"<Game moves={len(self.moves)} current_player={self.current_player}>"
 
-    def _move_str(self, move):
+    def move_str(self, move):
         """Format a move tuple (Piece, Square target) into `a3Qa8`."""
         return '{}{}{}'.format(move[0].position, move[0].letter.upper(), move[1])
 
     def __str__(self):
         """Algebraic notation of the whole game"""
-        moves = [self._move_str(m) for m in self.moves]
-        return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))+'\n'
+        moves = [self.move_str(m) for m in self.moves]
+        # unfortunately, this does not output a single white move
+        #return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))+'\n'
+        rounds = []
+        for i in range(0,len(moves),2):
+            round_ = moves[i]
+            if i+1 < len(moves):
+                round_ += ' '+moves[i+1]
+            rounds.append(round_)
+        return '\n'.join(rounds)+'\n'
 
     def __len__(self):
         """The length of the game is the number of moves that have been played"""
