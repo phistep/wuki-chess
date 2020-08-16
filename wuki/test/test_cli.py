@@ -3,6 +3,7 @@ import pytest
 from .. import cli
 from ..game import Game
 
+@pytest.mark.skip(reason="change test structure")
 def test_parse_match_file(tmp_path):
     moves_str = """e4 e5
 Nf3 Nc6
@@ -13,6 +14,7 @@ Bb5
     moves_list = ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5']
     assert cli.parse_match_file(match_file) == moves_list
 
+@pytest.mark.skip(reason="change test structure")
 def test_write_match_file(tmp_path):
     moves_str = """e2Pe4 e7Pe5
 g1Nf3 b8Nc6

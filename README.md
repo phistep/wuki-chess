@@ -87,16 +87,10 @@ For now you gotta read the source. The commandline application is in
 		- time
 		- markers for check etc.
 	- interactive mode
-		- auto save to matchfile
-		- commands
-			- "help" for this help
-			- just a move
-			- "save <file_name>" to save to file
-			- "show <piece>" to highlight possible moves
-			- "exit", "quit" to leave
 		- two player or ai mode
 		- timestamps and time constraint
 		- restore input on `IllegalMoveError` or `MoveParseError`
+		- trap ^C
 	- matplotlib for pdf game output
 	- localization?
 	- wxpython gui

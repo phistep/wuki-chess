@@ -2,7 +2,7 @@ import re
 
 from . import piece
 from .board import White, Black, Square, Board
-from .errors import WrongPlayerError, MoveParseError
+from .errors import WrongPlayerError, MoveParseError, AmbigousMoveError
 
 
 class Game:
@@ -96,34 +96,34 @@ class Game:
                     )
         try:
             matches = re.match(move_re, move).groupdict()
-            piece_id = matches['piece'] if matches['piece'] else 'P'
-            target = Square(matches['target_file'], int(matches['target_rank']))
-            if ('source_file' in matches and matches['source_file']
-                and 'source_rank' in matches and matches['source_rank']):
-                source = Square(matches['source_file'], int(matches['source_rank']))
-                piece_ = board[source]
-            else:
-                possible_pieces = board.pieces()
-                possible_pieces = [p for p in possible_pieces if p.color == current_player]
-                possible_pieces = [p for p in possible_pieces if p.letter.upper() == piece_id]
-                #print({p: p.possible_moves(board) for p in possible_pieces})
-                possible_pieces = [p for p in possible_pieces if target in p.possible_moves(board=board)]
-                if 'source_file' in matches and matches['source_file']:
-                    possible_pieces = [p for p in possible_pieces if p.position.file == matches['source_file']]
-                if 'source_rank' in matches and matches['source_rank']:
-                    possible_pieces = [p for p in possible_pieces if p.position.rank == int(matches['source_rank'])]
-                possible_pieces = list(possible_pieces)
+        except:
+            raise MoveParseError(move, reason='Wrong move format')
+        piece_id = matches['piece'] if matches['piece'] else 'P'
+        target = Square(matches['target_file'], int(matches['target_rank']))
+        if ('source_file' in matches and matches['source_file']
+            and 'source_rank' in matches and matches['source_rank']):
+            source = Square(matches['source_file'], int(matches['source_rank']))
+            piece_ = board[source]
+        else:
+            possible_pieces = board.pieces()
+            possible_pieces = [p for p in possible_pieces if p.color == current_player]
+            possible_pieces = [p for p in possible_pieces if p.letter.upper() == piece_id]
+            #print({p: p.possible_moves(board) for p in possible_pieces})
+            possible_pieces = [p for p in possible_pieces if target in p.possible_moves(board=board)]
+            if 'source_file' in matches and matches['source_file']:
+                possible_pieces = [p for p in possible_pieces if p.position.file == matches['source_file']]
+            if 'source_rank' in matches and matches['source_rank']:
+                possible_pieces = [p for p in possible_pieces if p.position.rank == int(matches['source_rank'])]
+            possible_pieces = list(possible_pieces)
 
-                if len(possible_pieces) == 1:
-                    piece_ = possible_pieces[0]
-                else:
-                    raise MoveParseError('Source piece inference not possible')
-            if not piece_id == piece_.letter.upper():
-                raise MoveParseError(f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})")
-            if not current_player == piece_.color:
-                raise MoveParseError("Color of piece at source square does not match current player")
-        except Exception as e:
-            raise MoveParseError(f"Malformed move '{move}': {e}")
+            if len(possible_pieces) == 1:
+                piece_ = possible_pieces[0]
+            else:
+                raise AmbigousMoveError(move, reason='Source piece inference not possible')
+        if not piece_id == piece_.letter.upper():
+            raise MoveParseError(move, reason=f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})")
+        if not current_player == piece_.color:
+            raise MoveParseError(move, reason="Color of piece at source square does not match current player")
         return piece_, target
 
     def make_move(self, piece, target=None):

@@ -4,6 +4,12 @@ class IllegalMoveError(Exception):
 
 class MoveParseError(Exception):
     """Malformed move string is not in Algebraic Notation and cannot be parsed."""
+    def __init__(self, move, reason=None):
+        self.move = move
+        self.reason = reason
+
+class AmbigousMoveError(MoveParseError):
+    """Move string cannot be parsed because source piece cannot be infered."""
     pass
 
 class WrongPlayerError(Exception):

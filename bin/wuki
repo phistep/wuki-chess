@@ -1,5 +1,5 @@
 #!/usr/bin/python3
 
 if __name__ == '__main__':
-    from wuki.cli import main
-    main()
+    from wuki.cli import CLI
+    CLI().main()
