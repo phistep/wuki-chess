@@ -3,7 +3,7 @@ import pytest
 from ..game import Game
 from .. import piece
 from ..board import White, Black, Board, Square
-from ..errors import MoveParseError, WrongPlayerError, IllegalMoveError
+from ..errors import MoveParseError, WrongPlayerError, IllegalMoveError, AmbigousMoveError
 
 @pytest.fixture
 def moves():
@@ -75,9 +75,19 @@ f1Bb5
 def test_Game_parse_move():
     assert Game([]).parse_move('g1Nf3') == (piece.Piece(piece.Knight(), Game.FIRST_PLAYER, Square('g', 1)), Square('f', 3))
 
+def test_Game_parse_move_wrong_format():
+    move = 'string'
+    with pytest.raises(MoveParseError) as error:
+        Game([]).parse_move('string')
+    assert error.value.move == move
+    assert error.value.reason == 'Wrong move format'
+
 def test_Game_parse_move_wrong_piece():
-    with pytest.raises(MoveParseError):
-        Game([]).parse_move('g1Qf3')
+    move = 'g1Qf3'
+    with pytest.raises(MoveParseError) as error:
+        Game([]).parse_move(move)
+    assert error.value.move == move
+    assert "Specified source piece and piece on that square do not match (is None)"
 
 def test_Game_parse_move_wrong_player():
     with pytest.raises(MoveParseError):
@@ -86,8 +96,11 @@ def test_Game_parse_move_wrong_player():
         Game([]).parse_move('g1Nf3', current_player=~Game.FIRST_PLAYER)
 
 def test_Game_parse_move_inference_impossible(ambigous_game):
-    with pytest.raises(MoveParseError):
+    move = 'Ne5'
+    with pytest.raises(AmbigousMoveError) as error:
         ambigous_game.parse_move('Ne5', current_player=White)
+    assert error.value.move == move
+    assert error.value.reason == 'Source piece inference not possible'
 
 def test_Game_parse_mave_inference_hint(ambigous_game):
     assert ambigous_game.parse_move('fNe5') == (piece.Piece(piece.Knight(), White, Square('f',7)), Square('e',5))

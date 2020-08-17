@@ -97,7 +97,7 @@ class Game:
         try:
             matches = re.match(move_re, move).groupdict()
         except:
-            raise MoveParseError(move, reason='Wrong move format')
+            raise MoveParseError('Wrong move format', move)
         piece_id = matches['piece'] if matches['piece'] else 'P'
         target = Square(matches['target_file'], int(matches['target_rank']))
         if ('source_file' in matches and matches['source_file']
@@ -119,11 +119,11 @@ class Game:
             if len(possible_pieces) == 1:
                 piece_ = possible_pieces[0]
             else:
-                raise AmbigousMoveError(move, reason='Source piece inference not possible')
+                raise AmbigousMoveError('Source piece inference not possible', move)
         if not piece_id == piece_.letter.upper():
-            raise MoveParseError(move, reason=f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})")
+            raise MoveParseError(f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})", move)
         if not current_player == piece_.color:
-            raise MoveParseError(move, reason="Color of piece at source square does not match current player")
+            raise MoveParseError("Color of piece at source square does not match current player", move)
         return piece_, target
 
     def make_move(self, piece, target=None):
