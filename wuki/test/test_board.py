@@ -361,16 +361,16 @@ def test_Board_possible_moves_give_check_Pawn():
 def test_Board_print(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])
     board.print()
-    assert capsys.readouterr().out == """  abcdefgh  
-8  █ █ █ █ 8
-7 █ █ █ █  7
-6  █ █ █ █ 6
-5 █ █♕█ █  5
-4  █ █ █ █ 4
-3 █ █ █ █  3
-2  █ █ █ █ 2
-1 █ █ █ █  1
-  abcdefgh  
+    assert capsys.readouterr().out == """ abcdefgh 
+8\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m8
+7\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m7
+6\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m6
+5\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m♛\x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m5
+4\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m4
+3\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m3
+2\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m2
+1\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m1
+ abcdefgh 
 captured:
   white: none
   black: none
@@ -378,51 +378,70 @@ captured:
 
 def test_Board_print_ascii(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])
-    board.print(unicode=False)
-    assert capsys.readouterr().out == """  abcdefgh  
-8  # # # # 8
-7 # # # #  7
-6  # # # # 6
-5 # #Q# #  5
-4  # # # # 4
-3 # # # #  3
-2  # # # # 2
-1 # # # #  1
-  abcdefgh  
+    board.print(unicode=False, color=False)
+    assert capsys.readouterr().out == """ abcdefgh 
+8 # # # #8
+7# # # # 7
+6 # # # #6
+5# #Q# # 5
+4 # # # #4
+3# # # # 3
+2 # # # #2
+1# # # # 1
+ abcdefgh 
 captured:
   white: none
   black: none
 """
 
-def test_Board_print_mark(capsys):
-    Board([]).print(mark=[(0,0), (0,1), (1,0), (1,1)])
-    assert capsys.readouterr().out == """  abcdefgh  
-8  █ █ █ █ 8
-7 █ █ █ █  7
-6  █ █ █ █ 6
-5 █ █ █ █  5
-4  █ █ █ █ 4
-3 █ █ █ █  3
-2 ░▓ █ █ █ 2
-1 ▓░█ █ █  1
-  abcdefgh  
+def test_Board_print_mark_color(capsys):
+    Board([Piece(Queen(), White, Square('a', 1)), Piece(Queen(), Black, Square('b', 2))]).print(mark=[(0,0), (0,1), (1,0), (1,1)])
+    assert capsys.readouterr().out == """ abcdefgh 
+8\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m8
+7\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m7
+6\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m6
+5\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m5
+4\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m4
+3\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m3
+2\x1b[38;5;255m\x1b[48;5;220m \x1b[0m\x1b[38;5;16m\x1b[48;5;130m♛\x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m2
+1\x1b[38;5;255m\x1b[48;5;130m♛\x1b[0m\x1b[38;5;255m\x1b[48;5;220m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m\x1b[38;5;255m\x1b[48;5;239m \x1b[0m\x1b[38;5;255m\x1b[48;5;249m \x1b[0m1
+ abcdefgh 
 captured:
   white: none
   black: none
 """
+
+
+def test_Board_print_mark_unicode(capsys):
+    Board([]).print(unicode=True, color=False, mark=[(0,0), (0,1), (1,0), (1,1)])
+    assert capsys.readouterr().out == """ abcdefgh 
+8 █ █ █ █8
+7█ █ █ █ 7
+6 █ █ █ █6
+5█ █ █ █ 5
+4 █ █ █ █4
+3█ █ █ █ 3
+2░▓ █ █ █2
+1▓░█ █ █ 1
+ abcdefgh 
+captured:
+  white: none
+  black: none
+"""
+
 
 def test_Board_print_mark_ascii(capsys):
-    Board([]).print(unicode=False, mark=[(0,0), (0,1), (1,0), (1,1)])
-    assert capsys.readouterr().out == """  abcdefgh  
-8  # # # # 8
-7 # # # #  7
-6  # # # # 6
-5 # # # #  5
-4  # # # # 4
-3 # # # #  3
-2 .@ # # # 2
-1 @.# # #  1
-  abcdefgh  
+    Board([]).print(unicode=False, color=False, mark=[(0,0), (0,1), (1,0), (1,1)])
+    assert capsys.readouterr().out == """ abcdefgh 
+8 # # # #8
+7# # # # 7
+6 # # # #6
+5# # # # 5
+4 # # # #4
+3# # # # 3
+2.@ # # #2
+1@.# # # 1
+ abcdefgh 
 captured:
   white: none
   black: none
@@ -432,38 +451,55 @@ def test_Board_print_captured(capsys):
     piece = Piece(Queen(), White, Square('d', 5))
     board = Board([piece])
     board.capture(piece)
-    board.print()
-    assert capsys.readouterr().out == """  abcdefgh  
-8  █ █ █ █ 8
-7 █ █ █ █  7
-6  █ █ █ █ 6
-5 █ █ █ █  5
-4  █ █ █ █ 4
-3 █ █ █ █  3
-2  █ █ █ █ 2
-1 █ █ █ █  1
-  abcdefgh  
+    board.print(unicode=True, color=False)
+    assert capsys.readouterr().out == """ abcdefgh 
+8 █ █ █ █8
+7█ █ █ █ 7
+6 █ █ █ █6
+5█ █ █ █ 5
+4 █ █ █ █4
+3█ █ █ █ 3
+2 █ █ █ █2
+1█ █ █ █ 1
+ abcdefgh 
 captured:
-  white: ♕
-  black: none
+  white: none
+  black: ♕
 """
 
-def test_Board_print_mark_ascii(capsys):
+def test_Board_print_captured_ascii(capsys):
     piece = Piece(Queen(), White, Square('d', 5))
     board = Board([piece])
     board.capture(piece)
-    board.print(unicode=False)
-    assert capsys.readouterr().out == """  abcdefgh  
-8  # # # # 8
-7 # # # #  7
-6  # # # # 6
-5 # # # #  5
-4  # # # # 4
-3 # # # #  3
-2  # # # # 2
-1 # # # #  1
-  abcdefgh  
+    board.print(unicode=False, color=False)
+    assert capsys.readouterr().out == """ abcdefgh 
+8 # # # #8
+7# # # # 7
+6 # # # #6
+5# # # # 5
+4 # # # #4
+3# # # # 3
+2 # # # #2
+1# # # # 1
+ abcdefgh 
 captured:
-  white: Q
+  white: none
+  black: Q
+"""
+
+def test_Board_upside_down(capsys):
+    Board([Piece(Queen(), White, Square('a', 1))]).print(unicode=True, color=False, upside_down=True)
+    assert capsys.readouterr().out == """ abcdefgh 
+1♕ █ █ █ 1
+2 █ █ █ █2
+3█ █ █ █ 3
+4 █ █ █ █4
+5█ █ █ █ 5
+6 █ █ █ █6
+7█ █ █ █ 7
+8 █ █ █ █8
+ abcdefgh 
+captured:
+  white: none
   black: none
 """

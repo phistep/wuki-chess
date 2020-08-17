@@ -387,38 +387,68 @@ class Board:
                 possible_moves |= piece.possible_moves(self)
         return possible_moves
 
-    def print(self, unicode=True, mark=[]):
+    def print(self, unicode=True, color=True, mark=[], upside_down=False):
         """Print the board
 
-        :param unicode: use unicode symbols
-        :param mark: list of Sqaures to be marked (drawn in a shaded color)
+        :param bool unicode: use unicode symbols
+        :param bool color: wether to use xterm-265color control sequences for
+            foreground-on-background coloring of the board
+        :param List[Sqaure] mark: list of Sqaures to be marked (drawn in a
+            shaded color)
+        :param bool upside_down: wether to print upside down (for black to see
+            it from their perspecitve)
         """
-        # TODO
-        # - :param inverted: invert colors for unicode (useful for White-on-Black terminals)
-        # - for interactive mode, print up-side-down
+        def colored_symbol(square, mark=[]):
+            if color:
+                # 8 bit
+                #bg_color = {White:47, Black:40}
+                #fg_color = {White:37, Black:30}
+                #fg_mark = {White:31, Black:31}
+                #bg_mark = {White:43, Black:43}
+                #return f"\x1b[48;{fg};{bg}m{symbol}\x1b[0m"
 
-        if unicode:
-            square_symbol = {White: ' ', Black: '█'}
-            square_symbol_marked = {White: '░', Black: '▓'}
-        else:
-            square_symbol = {White: ' ', Black: '#'}
-            square_symbol_marked = {White: '.', Black: '@'}
+                # xterm-256color
+                fg_color = {White:255, Black:16}
+                #fg_mark = {White:196, Black:196}
+                fg_mark = fg_color
+                bg_color = {White:249, Black:239}
+                # bg_mark = {White:112, Black:22} # green
+                # bg_mark = {White:160, Black:52} # red
+                bg_mark = {White:220, Black:130} # yellow
 
-        print('  abcdefgh  ')
-        for y in reversed(range(BOARD_LEN)):
-            print(y+1, end=' ')
+                if unicode:
+                    symbol = self[square].piece.symbol[Black] if square in self else ' ' # always use black symbol as it is fully colored
+                else:
+                    symbol = self[square].letter if square in self else ' '
+                if square in mark:
+                    fg_color = fg_mark
+                    bg_color = bg_mark
+                fg = fg_color[self[square].color] if square in self else fg_color[White] # doesn't matter if the square is empty anyway
+                bg = bg_color[square.color()]
+                return f"\x1b[38;5;{fg}m\x1b[48;5;{bg}m{symbol}\x1b[0m"
+            else:
+                if unicode:
+                    square_symbol = {White: ' ', Black: '█'}
+                    square_symbol_marked = {White: '░', Black: '▓'}
+                else:
+                    square_symbol = {White: ' ', Black: '#'}
+                    square_symbol_marked = {White: '.', Black: '@'}
+                if square in self:
+                    return self[square].symbol if unicode else self[square].letter
+                else:
+                    return square_symbol_marked[square.color()] if square in mark else square_symbol[square.color()]
+
+        print(' abcdefgh ')
+        for y in range(BOARD_LEN) if upside_down else reversed(range(BOARD_LEN)):
+            print(y+1, end='')
             for x in range(BOARD_LEN):
                 square = Square(x,y)
-                if square in self:
-                    symbol = self[square].symbol if unicode else self[square].letter
-                else:
-                    symbol = square_symbol_marked[square.color()] if square in mark else square_symbol[square.color()]
-                print(symbol, end='')
-            print('', y+1)
-        print('  abcdefgh  ')
+                print(colored_symbol(square, mark=mark), end='')
+            print(y+1)
+        print(' abcdefgh ')
         print('captured:')
         for color in [White,Black]:
-            captured_symbols = [p.symbol if unicode else p.letter for p in self.captured[color]]
+            captured_symbols = [p.symbol if unicode else p.letter for p in self.captured[~color]]
             print(f'  {color}:', ' '.join(captured_symbols) if captured_symbols else 'none')
 
 

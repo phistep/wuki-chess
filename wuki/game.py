@@ -149,9 +149,9 @@ class Game:
         self.boards.append(self.boards[-1].make_move(piece, target))
         self.current_player = ~self.current_player
 
-    def print_current_board(self, unicode=True):
+    def print_current_board(self, **kwargs):
         """Print the current board.
 
-        :param unicode: wether to use unicode or ascii symbols
+        :param **kwargs: keyword arguments are directly passed to Board.print()
         """
-        self.boards[-1].print(unicode)
+        self.boards[-1].print(**kwargs)

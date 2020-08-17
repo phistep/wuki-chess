@@ -3,7 +3,7 @@ import readline
 from sys import exit
 
 from .game import Game
-from .board import Square, Board
+from .board import Square, Board, Black
 from .errors import IllegalMoveError, MoveParseError, AmbigousMoveError
 
 class CLI:
@@ -23,6 +23,10 @@ class CLI:
                 help = 'Print all moves in the game')
         parser.add_argument('-A', '--ascii', action='store_true',
                 help='Use ascii characters and letters instead of unicode chess symbols')
+        parser.add_argument('-C', '--no-color', action='store_true',
+                help="Don't use xterm-265color control sequences for colored output")
+        parser.add_argument('-F', '--flip', action='store_true',
+                help="Flip the board when it is Black's turn so both players play upward")
         parser.add_argument('-m', '--move', type=str,
                 help='Make a move and store it into the match file')
         #parser.add_argument('-g', '--gui', action='store_true',
@@ -50,7 +54,7 @@ class CLI:
         if self.args.all_moves:
             print_full_game()
         else:
-            self.game.print_current_board()
+            self.print_current_board()
             print()
 
         if self.args.move:
@@ -65,6 +69,18 @@ class CLI:
                 raise e
 
         print('next:', self.game.current_player)
+
+    def print_current_board(self):
+        """Print current board to the screen.
+
+        Printing options that have been set in self.args are respected
+        """
+        self.game.print_current_board(
+                unicode=not self.args.ascii,
+                color=not self.args.no_color,
+                upside_down=(self.args.flip and self.game.current_player == Black)
+                )
+
 
     def parse_match_file(self):
         """Parses a match file in Algebraic Notation into a list of move strings.
@@ -94,7 +110,7 @@ class CLI:
     def make_move(self, move):
         # TODO docstring
         self.game.make_move(move)
-        self.game.print_current_board(unicode=not self.args.ascii)
+        self.print_current_board()
         if self.args.auto_save:
             write_match_file(args.match_file, self.game)
         print()
