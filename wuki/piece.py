@@ -91,6 +91,8 @@ class Piece(AbstractPiece):
         mover = self.position
         legal_moves = self.piece.legal_moves(self.position, board)
         possible_moves = legal_moves.copy()
+        # own pieces cannot by captured
+        possible_moves = set([s for s in possible_moves if (s in board and board[s].color is not self.color) or s not in board])
         if self == Knight():
             # Knights don't get blocked by other pieces
             pass
@@ -112,7 +114,7 @@ class Piece(AbstractPiece):
                 # happend for debug/testing purposes and we don't care
                 pass
         elif self == Pawn(self.color):
-            # Pawns cannot capture where they walk, oppeonent pieces block them
+            # Pawns cannot capture where they walk, opponent pieces block them
             one_step = self.position + (0, 1*self.color.direction)
             two_step = self.position + (0, 2*self.color.direction)
             if one_step in board:

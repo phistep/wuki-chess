@@ -145,8 +145,10 @@ def test_Piece_possible_moves_Pawn_capture():
 
 def test_Piece_possible_moves_blocked_Knight():
     pos = Square('a',1)
-    pieces = [Piece(Knight(), White, pos), Piece(Pawn(White), White, pos+(1,1))]
-    assert pieces[0].possible_moves(Board(pieces)) == set([pos+(1,2), pos+(2,1)])
+    pos_capture = pos + (1,2)
+    pos_no_capture = pos + (2,1)
+    pieces = [Piece(Knight(), White, pos), Piece(Pawn(White), White, pos+(1,1)), Piece(Pawn(White), White, pos_no_capture), Piece(Pawn(Black), Black, pos_capture)]
+    assert pieces[0].possible_moves(Board(pieces)) == set([pos_capture])
 
 def test_Piece_possible_moves_King():
     pieces = [Piece(King(), White, Square(6,0)),
