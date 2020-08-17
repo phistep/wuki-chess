@@ -27,7 +27,6 @@ For now you gotta read the source. The commandline application is in
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
 	- Board.pieces(kind=None, color=None) filter for color
-	- captures have to be carried over to next board!
 	- rules
 		- check
 			- check has to be terminated
@@ -84,6 +83,7 @@ For now you gotta read the source. The commandline application is in
 - cli
 	- --quiet: only print a move if there is one (by --move or by AI)
 	- cmd_undo
+	- cmd_print (print(self.game))
 	- add color block to prompt
 	- parse match_file into own function (support full Algebraic Notation)
 		- read and write

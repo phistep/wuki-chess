@@ -137,6 +137,18 @@ def test_Game_make_move_wrong_player():
     with pytest.raises(WrongPlayerError):
         game.make_move(game.boards[-1][Square('a',7)], Square('a',6))
 
+def test_Game_make_move_capture():
+    game = Game(['d4', 'e5', 'e5', 'd6', 'e3'])
+    captive = game.boards[2][Square('e', 5)]
+    for b in game.boards:
+        b.print()
+    assert game.boards[0].captured[Black] == set()
+    assert game.boards[1].captured[Black] == set()
+    assert game.boards[2].captured[Black] == set()
+    assert game.boards[3].captured[Black] == set([captive])
+    assert game.boards[4].captured[Black] == set([captive])
+    assert game.boards[5].captured[Black] == set([captive])
+
 def test_Game_print_board(capsys):
     game = Game([])
     game.print_board(unicode=True)

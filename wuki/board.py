@@ -205,7 +205,7 @@ class Board:
     iter(Board.pieces()). Supports indexing board[Square(x,y)] and member
     checking Piece in Board.
     """
-    def __init__(self, pieces):
+    def __init__(self, pieces, captured=None):
         """Build the board from a list of pieces
 
         :param pieces: list of pieces on the board
@@ -216,7 +216,11 @@ class Board:
         self.index = dict()
         for piece in self._pieces:
             self.index[piece.position] = piece
-        self.captured = {White:set(), Black:set()}
+        if captured:
+            # make a deep copy because lists are mutable
+            self.captured = {White:captured[White].copy(), Black:captured[Black].copy()}
+        else:
+            self.captured = {White:set(), Black:set()}
 
     def __repr__(self):
         return f"<Board pieces={len(self)} {self._pieces}>"
@@ -344,7 +348,7 @@ class Board:
         :raises IllegalMoveError: when move cannot be made
         """
         # TODO check for check, checkmate
-        new_board = Board(self._pieces)
+        new_board = Board(self._pieces, captured=self.captured)
         if target in new_board:
             # there is something on the board
             if new_board[target].color == piece.color:
@@ -449,6 +453,6 @@ class Board:
         print('captured:')
         for color in [White,Black]:
             captured_symbols = [p.symbol if unicode else p.letter for p in self.captured[~color]]
-            print(f'  {color}:', ' '.join(captured_symbols) if captured_symbols else 'none')
+            print(f'  {color}:', ''.join(captured_symbols) if captured_symbols else 'none')
 
 

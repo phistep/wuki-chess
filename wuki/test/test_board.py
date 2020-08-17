@@ -167,9 +167,11 @@ def test_Square_blocket_by_diag():
 def test_Board_init():
     pos = Square('d', 5)
     queen = Piece(Queen(), White, pos)
-    board = Board([queen])
+    captive = Piece(Pawn(White), White, pos+(1,1))
+    board = Board([queen], captured={White:set([captive]), Black:set()})
     assert board._pieces == {queen}
     assert board.index == {pos:queen}
+    assert board.captured[White] == set([captive])
 
 def test_Board_repr():
     assert repr(Board([Piece(Queen(), White, Square('d', 5))])) == '<Board pieces=1 {<Queen color=white position=d5>}>'
@@ -334,6 +336,17 @@ def test_Bord_make_move_capture():
     assert new_board[pos_b] == piece_a.move_to(pos_b, board)
     assert piece_b not in new_board
     assert piece_b in new_board.captured[~color]
+
+def test_Bord_make_move_capture_inherit():
+    color = White
+    pos_a = Square(('d', 5))
+    pos_b = pos_a+(0,1)
+    piece_a = Piece(Queen(), color, pos_a)
+    piece_b = Piece(Queen(), ~color, pos_b)
+    board = Board([piece_a, piece_b])
+    new_board = board.make_move(piece_a, pos_b)
+    newer_board = new_board.make_move(new_board[pos_b], pos_b+(1,0))
+    assert piece_b in newer_board.captured[~color]
 
 def  test_Bord_make_move_capture_self():
     pos_a = Square(('d', 5))
