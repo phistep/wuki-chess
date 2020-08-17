@@ -137,17 +137,25 @@ def test_Game_make_move_wrong_player():
     with pytest.raises(WrongPlayerError):
         game.make_move(game.boards[-1][Square('a',7)], Square('a',6))
 
-def test_Game_print_current_board(capsys):
+def test_Game_print_board(capsys):
     game = Game([])
-    game.print_current_board(unicode=True)
+    game.print_board(unicode=True)
     game_out = capsys.readouterr().out
     game.boards[-1].print(unicode=True)
     board_out = capsys.readouterr().out
     assert game_out == board_out
 
-def test_Game_print_current_board_ascii(capsys):
+def test_Game_print_board_arg(capsys):
     game = Game([])
-    game.print_current_board(unicode=False)
+    game.print_board()
+    game_out = capsys.readouterr().out
+    Board(game.boards[-1].pieces()).print()
+    board_out = capsys.readouterr().out
+    assert game_out == board_out
+
+def test_Game_print_board_ascii(capsys):
+    game = Game([])
+    game.print_board(unicode=False)
     game_out = capsys.readouterr().out
     game.boards[-1].print(unicode=False)
     board_out = capsys.readouterr().out

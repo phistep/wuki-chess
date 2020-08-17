@@ -149,9 +149,12 @@ class Game:
         self.boards.append(self.boards[-1].make_move(piece, target))
         self.current_player = ~self.current_player
 
-    def print_current_board(self, **kwargs):
-        """Print the current board.
+    def print_board(self, board=None, **kwargs):
+        """Print a board or the current board.
 
+        :param board: a board print, defaults to the current board
         :param **kwargs: keyword arguments are directly passed to Board.print()
         """
-        self.boards[-1].print(**kwargs)
+        if board is None:
+            board = self.boards[-1]
+        board.print(**kwargs)

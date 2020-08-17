@@ -27,6 +27,7 @@ For now you gotta read the source. The commandline application is in
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
 	- Board.pieces(kind=None, color=None) filter for color
+	- captures have to be carried over to next board!
 	- rules
 		- check
 			- check has to be terminated
@@ -81,6 +82,9 @@ For now you gotta read the source. The commandline application is in
 			- freedom of movement
 			- control over center
 - cli
+	- --quiet: only print a move if there is one (by --move or by AI)
+	- cmd_undo
+	- add color block to prompt
 	- parse match_file into own function (support full Algebraic Notation)
 		- read and write
 		- comments
@@ -97,6 +101,6 @@ For now you gotta read the source. The commandline application is in
 	- matplotlib gui?
 	- online mode (host server, play against players/ais)
 - package
-	- sphinx docs
+	- sphinx docs -> ghpages
 	- dependencies, installer
 	- package docsting header (author, etc)
