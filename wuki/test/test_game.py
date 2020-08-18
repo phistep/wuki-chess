@@ -172,3 +172,10 @@ def test_Game_print_board_ascii(capsys):
     game.boards[-1].print(unicode=False)
     board_out = capsys.readouterr().out
     assert game_out == board_out
+
+def test_Game_undo():
+    game = Game([])
+    game.make_move('e4')
+    assert len(game) == 1
+    game.undo()
+    assert len(game) == 0

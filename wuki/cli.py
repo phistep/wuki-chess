@@ -205,6 +205,17 @@ class CLI:
         else:
             print("No match file given")
 
+    def cmd_undo(self, *args):
+        """undo: undo the last move"""
+        self.game.undo()
+        if self.args.auto_save:
+            self.write_match_file()
+        self.print_board()
+
+    def cmd_print(self, *args):
+        """print: print the current game in Standard Algebraic Notation"""
+        print(self.game)
+
     def cmd_exit(self, *args):
         """exit: quit the program (you can also use ctrl+D)"""
         exit(0)

@@ -82,8 +82,6 @@ For now you gotta read the source. The commandline application is in
 			- control over center
 - cli
 	- --quiet: only print a move if there is one (by --move or by AI)
-	- cmd_undo
-	- cmd_print (print(self.game))
 	- add color block to prompt
 	- parse match_file into own function (support full Algebraic Notation)
 		- read and write

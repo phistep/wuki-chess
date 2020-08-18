@@ -149,6 +149,11 @@ class Game:
         self.boards.append(self.boards[-1].make_move(piece, target))
         self.current_player = ~self.current_player
 
+    def undo(self):
+        """Undo the last move"""
+        del self.boards[-1]
+        del self.moves[-1]
+
     def print_board(self, board=None, **kwargs):
         """Print a board or the current board.
 

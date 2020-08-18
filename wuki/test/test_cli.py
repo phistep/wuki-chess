@@ -158,8 +158,10 @@ def test_cmd_help(capsys):
   exit: quit the program (you can also use ctrl+D)
   help: Print this help
   [move ]<move>: Make a <move> on the board: [<source_file>][<source_rank>]<piece><target_file><target_rank> (e.g. 'move d3Qe5' or 'a5')
+  print: print the current game in Standard Algebraic Notation
   save [<file>]: auto save the game to match file provided at startup or to <file>
   show <file><rank>: highlight all possible moves for piece on square with file and rank (e.g. 'show a3').
+  undo: undo the last move
 """
     CLI([]).cmd_help()
     assert help_text in capsys.readouterr().out
@@ -225,6 +227,26 @@ def test_cmd_save_missing(capsys):
     cli = CLI([])
     cli.cmd_save()
     assert f"No match file" in capsys.readouterr().out
+
+def test_cmd_undo():
+    cli = CLI([])
+    cli.make_move('e4')
+    assert len(cli.game) == 1
+    cli.cmd_undo()
+    assert len(cli.game) == 0
+
+def test_cmd_undo_auto_save(tmp_path):
+    match_file = tmp_path / 'match.txt'
+    cli = CLI(['--auto-save', '--match-file', str(match_file)])
+    cli.make_move('e4')
+    cli.cmd_undo()
+    assert match_file.read_text().rstrip('\n') == ""
+
+def test_cmd_print(capsys):
+    cli = CLI([])
+    cli.make_move('e4')
+    cli.cmd_print()
+    assert list(filter(None, capsys.readouterr().out.split('\n')))[-1] == "e2Pe4"
 
 def test_cmd_exit():
     # https://medium.com/python-pandemonium/testing-sys-exit-with-pytest-10c6e5f7726f
