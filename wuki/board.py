@@ -323,17 +323,18 @@ class Board:
         assert self.index[piece.position] == piece
         return piece
 
-    def pieces(self, kind=None):
+    def pieces(self, kind=None, color=None):
         """Returns a list of all pieces on the board. If kind is given (as an
         instance of an Abstract(Piece)) only the pieces of that kind are returned.
+        If color is given, only pieces of that color are returned.
 
         :param kind: If a Piece or AbstractPiece is given, only pieces of that
             kind are returned
+        :param  color: only pieces of that color are returned
+
+        :returns: set of pieces on the board matching the conditions
         """
-        if kind is None:
-            return self._pieces
-        else:
-            return set([p for p in self._pieces if p == kind])
+        return set([p for p in self._pieces if (p == kind if kind is not None else True) and (p.color == color if color is not None else True)])
 
     def make_move(self, piece, target, color=None):
         """Move on the current board and return the new board. This does not

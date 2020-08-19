@@ -26,7 +26,6 @@ For now you gotta read the source. The commandline application is in
 	- Color.__negate__() -> __not__()
 	- use exceptions to handle capturing, promotion, castling, check, checkmate?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
-	- Board.pieces(kind=None, color=None) filter for color
 	- rules
 		- check
 			- check has to be terminated
@@ -83,7 +82,9 @@ For now you gotta read the source. The commandline application is in
 - cli
 	- --quiet: only print a move if there is one (by --move or by AI)
 	- add color block to prompt
+	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
 	- parse match_file into own function (support full Algebraic Notation)
+	- support Portable game notation
 		- read and write
 		- comments
 		- time

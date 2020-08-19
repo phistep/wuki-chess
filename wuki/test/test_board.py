@@ -257,10 +257,13 @@ def test_Board_iter_stops():
         pass
 
 def test_Board_pieces():
-    pieces = [Piece(Queen(), White, Square('d', 5)), Piece(King(), White, Square('a', 1))]
+    pieces = [Piece(Queen(), White, Square('d', 5)), Piece(King(), Black, Square('a', 1))]
     board = Board(pieces)
     assert board.pieces() == set(pieces)
-    assert board.pieces(pieces[0]) == {pieces[0]}
+    assert board.pieces(kind=pieces[0]) == set([pieces[0]])
+    assert board.pieces(kind=King()) == set([pieces[1]])
+    assert board.pieces(color=White) == set([pieces[0]])
+    assert board.pieces(kind=King(), color=White) == set()
 
 def test_Board_add():
     board = Board([])
