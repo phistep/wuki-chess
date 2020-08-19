@@ -129,13 +129,6 @@ class Piece(AbstractPiece):
             for blocker in [s for s in legal_moves if s in board]:
                 for blocked in [s for s in legal_moves if s.blocked_by(mover, blocker)]:
                     possible_moves.discard(blocked)
-                if board[blocker].color == self.color:
-                    # own pieces block, but cannot be captured. their squares
-                    # are inaccessable
-                    possible_moves.discard(blocker)
-                else:
-                    # this piece blocks, but can be captured
-                    possible_moves.add(blocker)
         return possible_moves
 
     def move_to(self, target, board):

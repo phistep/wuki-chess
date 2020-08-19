@@ -130,6 +130,17 @@ def test_Piece_possible_moves_capture():
     ally = Piece(Pawn(attacker.color), attacker.color, Square(0,1))
     assert attacker.possible_moves(Board([attacker, captive, ally])) == set([captive.position])
 
+def test_Piece_possible_moves_blocked_no_capture():
+    attacker = Piece(Rook(), White, Square('d',1))
+    noncaptive = Piece(Queen(), ~attacker.color, Square('d',8))
+    blockers = [Piece(Pawn(attacker.color), attacker.color, attacker.position+(-1,0)),
+                Piece(Pawn(attacker.color), attacker.color, attacker.position+( 1,0)),
+                # bug strikes again
+                Piece(Pawn(~attacker.color), ~attacker.color, attacker.position+( 0,5)),
+                Piece(Pawn( attacker.color),  attacker.color, attacker.position+( 0,2)),]
+    board = Board([attacker]+[noncaptive]+blockers)
+    assert attacker.possible_moves(board) == set([attacker.position+(0,1)])
+
 def test_Piece_possible_moves_Pawn():
     pos = Square('a',2)
     pieces = [Piece(Pawn(White), White, pos), Piece(Pawn(White), Black, pos+(0,1)), Piece(Pawn(White), Black, pos+(1,1))]
@@ -166,12 +177,6 @@ def test_Piece_possible_moves_King_and_Pawn():
     king = Piece(King(), Black, Square(4,2))
     pawn = Piece(Pawn(White), White, Square(4,0)) # don't ask me how it got there
     board = Board([king,pawn])
-    # TODO
-    print("king.possible_moves()")
-    board.print(mark=king.possible_moves(board))
-    print()
-    print(("manual"))
-    board.print(mark=set(map(Square,[(3,2), (3,3), (4,1), (4,3), (5,2), (5,3)])))
     assert king.possible_moves(board) == set(map(Square,[(3,2), (3,3), (4,1), (4,3), (5,2), (5,3)]))
 
 

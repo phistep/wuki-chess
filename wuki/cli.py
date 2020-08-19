@@ -188,6 +188,8 @@ class CLI:
             position = Square(file_, int(rank))
             board = self.game.boards[-1]
             possible_moves = board[position].possible_moves(board)
+            # for debugging: show blocked legal moves instead of possible moves
+            #possible_moves = [sq for sq, _ in board for p in board.pieces() if sq.blocked_by(position, p.position)]
             self.print_board(board=board, mark=possible_moves)
         except ValueError:
             print("Wrong location format. Try `help`.")

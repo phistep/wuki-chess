@@ -183,10 +183,10 @@ class Square:
             return True
         # diagonals
         elif ((self in mover.diagonals() and blocker in mover.diagonals())
-            and    (mover.x < blocker.x < self.x and mover.y < blocker.y < self.y)   # NE
-                or (mover.x < blocker.x < self.x and mover.y > blocker.y > self.y)   # SE
-                or (mover.x > blocker.x > self.x and mover.y < blocker.y < self.y)   # NW
-                or (mover.x > blocker.x > self.x and mover.y > blocker.y > self.y)): # SW
+            and (   (mover.x < blocker.x < self.x and mover.y < blocker.y < self.y)    # NE
+                 or (mover.x < blocker.x < self.x and mover.y > blocker.y > self.y)    # SE
+                 or (mover.x > blocker.x > self.x and mover.y < blocker.y < self.y)    # NW
+                 or (mover.x > blocker.x > self.x and mover.y > blocker.y > self.y))): # SW
             return True
         else:
             return False
