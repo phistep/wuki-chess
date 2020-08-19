@@ -177,5 +177,11 @@ def test_Game_undo():
     game = Game([])
     game.make_move('e4')
     assert len(game) == 1
+    assert game.current_player == Black
     game.undo()
     assert len(game) == 0
+    assert game.current_player == White
+    game.undo()
+    assert len(game) == 0
+    assert game.current_player == White
+

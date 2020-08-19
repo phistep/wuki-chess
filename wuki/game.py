@@ -151,8 +151,10 @@ class Game:
 
     def undo(self):
         """Undo the last move"""
-        del self.boards[-1]
-        del self.moves[-1]
+        if len(self.boards) > 1 and len(self.moves) > 0:
+            del self.boards[-1]
+            del self.moves[-1]
+            self.current_player = ~self.current_player
 
     def print_board(self, board=None, **kwargs):
         """Print a board or the current board.
