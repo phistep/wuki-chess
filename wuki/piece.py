@@ -1,5 +1,5 @@
 from .board import White, Black, Square, within_board
-from .errors import IllegalMoveError
+from .exceptions import IllegalMoveError
 
 class AbstractPiece:
     """General type of a piece"""
@@ -99,14 +99,14 @@ class Piece(AbstractPiece):
         elif self == King():
             # TODO Kings can castle under specific circumstances
             # Kings cannot move themselves into check
-            for square_in_check in board.possible_moves(~self.color, give_check=True):
+            for _, square_in_check, in board.possible_moves(~self.color, give_check=True):
                 possible_moves.discard(square_in_check)
             try:
                 # treat opponent King separately to avoid infinite recursion
                 # use opponent's King's `.legal_moves` instead of possible_moves
                 # to avoid recursion. Wether blocked or not, two Kings can
                 # never sit adjacent.
-                opponent_king = [p for p in board.pieces(King()) if p.color is not self.color][0]
+                opponent_king = next(iter(board.pieces(kind=King(), color=~self.color)))
                 for square_in_check in opponent_king.piece.legal_moves(opponent_king.position, board):
                     possible_moves.discard(square_in_check)
             except:
@@ -236,7 +236,7 @@ class Pawn(AbstractPiece):
     """
     def __init__(self, color):
         self.name = "Pawn"
-        self.letter = 'P'
+        self.letter = 'P' if color == White else 'p'
         self.color = color
         self.symbol = {White:'♙', Black:'♟'}
 
@@ -268,4 +268,9 @@ class Pawn(AbstractPiece):
         moves = [position + (0, self.color.direction*dist) for dist in distance]
         moves = set(filter(within_board, moves+captures))
         return moves
+
+
+all_pieces = set([King(), Queen(), Rook(), Bishop(), Knight(), Pawn(White), Pawn(Black)])
+
+piece_by_letter = {p.letter: p for p in all_pieces}
 

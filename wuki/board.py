@@ -1,7 +1,7 @@
 from math import sqrt
 
 from . import piece as pc
-from .errors import IllegalMoveError
+from .exceptions import IllegalMoveError
 
 BOARD_LEN = 8
 
@@ -372,10 +372,10 @@ class Board:
             account. Needed to stop recursion when finding possible moves for a
             King().possible_moves and stops the recursion.
 
-        :returns: a set of possible moves {(Piece piece, Sqaure target)}
+        :returns: a set of possible moves {(Piece piece, Square target)}
         """
         possible_moves = set()
-        for piece in [p for p in self.pieces() if p.color == player]:
+        for piece in self.pieces(color=player):
             if give_check and piece == pc.King():
                 # We need to ignore King()s in order to check which squares are
                 # blocked for the other King because people are attacking it.
@@ -387,10 +387,46 @@ class Board:
                 # we can use Pawn().legal_moves() here, since the only way they
                 # could be blocked (as usually determined by Piece.possible_moves())
                 # is by a friendly piece s
-                possible_moves |= piece.piece.legal_moves(piece.position, self, only_attacked=True)
+                possible_moves |= {(piece, target) for target in piece.piece.legal_moves(piece.position, self, only_attacked=True)}
             else:
-                possible_moves |= piece.possible_moves(self)
+                possible_moves |= {(piece, target) for target in piece.possible_moves(self)}
+        if not give_check:
+            # We need to remove all moves that end up in a check, but since
+            # we check for attacked squares in .is_check, we have to exclude
+            # this check in order to evade a recursion
+            for move in possible_moves.copy():
+                if self.make_move(*move).is_check(player):
+                    possible_moves.discard(move)
         return possible_moves
+
+    def is_check(self, player):
+        """Returns True if player is in check.
+
+        :param Color player: the player to check for
+
+        :returns: True if player is in check, False otherwise
+        """
+        king = next(iter(self.pieces(kind=pc.King(), color=player)))
+        return king.position in {target for _, target in self.possible_moves(~player, give_check=True)}
+
+    def is_stalemate(self, player):
+        """Returns True if player is stalemate but not checkmate. I.e. can not
+        move anymore but is not in check
+
+        :param Color player: the player to check for
+
+        :returns: True if player is in stalemate, False otherwise
+        """
+        return self.possible_moves(player) == set() and not self.is_check(player)
+
+    def is_checkmate(self, player):
+        """Returns True if player is checkmate.
+
+        :param Color player: the player to check for
+
+        :returns: True if player is in checkmate, False otherwise
+        """
+        return self.possible_moves(player) == set() and self.is_check(player)
 
     def print(self, unicode=True, color=True, mark=[], upside_down=False):
         """Print the board

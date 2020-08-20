@@ -2,7 +2,8 @@ import re
 
 from . import piece
 from .board import White, Black, Square, Board
-from .errors import WrongPlayerError, MoveParseError, AmbigousMoveError
+from .exceptions import WrongPlayerError, MoveParseError, AmbigousMoveError
+from .exceptions import CheckException, CheckmateException, DrawException
 
 
 class Game:
@@ -98,16 +99,14 @@ class Game:
             matches = re.match(move_re, move).groupdict()
         except:
             raise MoveParseError('Wrong move format', move)
-        piece_id = matches['piece'] if matches['piece'] else 'P'
+        piece_id = matches['piece'] if matches['piece'] else ('P' if current_player is White else 'p')
         target = Square(matches['target_file'], int(matches['target_rank']))
         if ('source_file' in matches and matches['source_file']
             and 'source_rank' in matches and matches['source_rank']):
             source = Square(matches['source_file'], int(matches['source_rank']))
             piece_ = board[source]
         else:
-            possible_pieces = board.pieces()
-            possible_pieces = [p for p in possible_pieces if p.color == current_player]
-            possible_pieces = [p for p in possible_pieces if p.letter.upper() == piece_id]
+            possible_pieces = board.pieces(kind=piece.piece_by_letter[piece_id], color=current_player)
             #print({p: p.possible_moves(board) for p in possible_pieces})
             possible_pieces = [p for p in possible_pieces if target in p.possible_moves(board=board)]
             if 'source_file' in matches and matches['source_file']:
@@ -120,9 +119,10 @@ class Game:
                 piece_ = possible_pieces[0]
             else:
                 raise AmbigousMoveError('Source piece inference not possible', move)
-        if not piece_id == piece_.letter.upper():
+        if not piece_id.upper() == piece_.letter.upper():
             raise MoveParseError(f"Specified source piece and piece on that square do not match (is {piece_.letter.upper()})", move)
         if not current_player == piece_.color:
+            print(repr(piece_))
             raise MoveParseError("Color of piece at source square does not match current player", move)
         return piece_, target
 
@@ -138,6 +138,8 @@ class Game:
         :raises IllegalMoveError: when move cannot be made
         :raises WrongPlayerError: when the color of the pieces is not the one
             of the current player
+        :raises GameOverException: when the game is over and no move can be made
+            anymore
         """
         if isinstance(piece, str) and target is None:
             piece, target = self.parse_move(piece)
@@ -145,8 +147,15 @@ class Game:
             raise ValueError("Either move is passed as string or piece and target have to be supplied")
         if piece.color != self.current_player:
             raise WrongPlayerError(f"current player: {self.current_player}")
-        self.moves.append((piece, target))
+        try:
+            # TODO this is incredibly slow, maybe not do this every round?
+            #self.check_state()
+            pass
+        except CheckException:
+            # a check does not prevent a new move to be made
+            pass
         self.boards.append(self.boards[-1].make_move(piece, target))
+        self.moves.append((piece, target))
         self.current_player = ~self.current_player
 
     def undo(self):
@@ -165,3 +174,28 @@ class Game:
         if board is None:
             board = self.boards[-1]
         board.print(**kwargs)
+
+    def check_state(self, player=None):
+        """Checks the current board for a special game state and raises an
+        exception if anything unusual is going on.
+
+        :param player: the player to check for
+
+        :raises GameOverException: When the game is over. The .winner attribute
+            is either White, Black or None for remis. This exception also comes
+            in CheckmateException, WhiteWinsException, BlackWinsException and
+            DrawException flavors.
+        :raises CheckException: When the current color is under check. The
+            .player attribute is either Black or White.
+        """
+        if player is None:
+            player = self.current_player
+        current_board = self.boards[-1]
+        if current_board.is_stalemate(player):
+            raise DrawException(reason=f'stalemate {player}')
+        # TODO a lot of other reasons for a draw
+        if current_board.is_checkmate(player):
+            raise CheckmateException(player)
+        if current_board.is_check(player):
+            raise CheckException(player)
+

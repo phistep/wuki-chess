@@ -23,41 +23,26 @@ For now you gotta read the source. The commandline application is in
 
 ## TODO
 - general
+	- check game state function super slow, how to realisticly use it in Game.make_move()
+		- move is_stalemate and is_checkmate into Game / just into check_state
+		- dont check is_check and king.possible_moves twice
+	- don't always run slow tests
 	- Color.__negate__() -> __not__()
-	- use exceptions to handle capturing, promotion, castling, check, checkmate?
+	- use exceptions to handle promotion, castling?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
+	- check and checkmate gamefile parsing and writing
 	- rules
-		- check
-			- check has to be terminated
-				- move king out of check
-				- move piece inbetween attacker and king
-			- cannot move a piece that puts your own piece into check
-			-> resulting move has to have not check
-			- no: Board should not contain game logic only piece logic
-				- in Board.make_move(piece_, target): self.check = piece_.color
-				- @property Game.check(): self.boards[-1].check
-			- yes: Game has the game logic
-				- in Game.make_move(piece_, target): self.check = piece_.color
-			- manipulate Game.possible_moves to only include king if self.check == current_player
-		- game end
-			- loose game when Game.possible_moves() is empty
-		- remis!
+		- draw!
+			- one player has no possible moves but is not in check
 			- both players have empty Game.possible_moves()
+			- threefold repitition: same player has same board three times in a row
+			- fifty-move rule: 50 moves without captire or pawn move
+			- no path to checkmate (ooph)
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
 			- cannot move when touched
 			- cannot move through check!
 		- en passent
-	- check game state function
-		try:
-			board.check_state(current_player)?
-		except Check:
-		except Remis as e:
-		except CheckMate, TimeOut as e:
-
-		Exception GameOver
-			.winner # <Black> or <White> or None
-			.type # Remis or CheckMate or TimeOut
 - find next move
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
@@ -81,6 +66,8 @@ For now you gotta read the source. The commandline application is in
 			- control over center
 - cli
 	- --quiet: only print a move if there is one (by --move or by AI)
+	- cmd_show: when no arguments show all possible movable pieces for player
+	- check into prompt, checkmate support
 	- add color block to prompt
 	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
 	- parse match_file into own function (support full Algebraic Notation)

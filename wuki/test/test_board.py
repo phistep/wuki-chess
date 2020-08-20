@@ -2,8 +2,8 @@ import pytest
 from math import sqrt
 
 from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
-from ..piece import Piece, Queen, King, Pawn
-from ..errors import IllegalMoveError
+from ..piece import Piece, Queen, King, Pawn, Rook
+from ..exceptions import IllegalMoveError
 
 def test_Color_constants():
     white = Color(Color.WHITE)
@@ -360,10 +360,12 @@ def  test_Bord_make_move_capture_self():
         board.make_move(pieces[0], pos_b)
 
 def test_Board_possible_moves():
-    pieces = [Piece(Queen(), White, Square('a',1)), Piece(Pawn(White), White, Square('b',2)), Piece(Pawn(Black), Black, Square('b',7))]
-    board = Board(pieces)
-    assert board.possible_moves(White) == pieces[0].possible_moves(board) | pieces[1].possible_moves(board)
-    assert Board(pieces).possible_moves(Black) == pieces[2].possible_moves(board)
+    # we need kings out of check to get possible moves
+    pieces_w = [Piece(Queen(), White, Square('a',1)), Piece(Pawn(White), White, Square('b',2)), Piece(King(), White, Square('e', 1))]
+    pieces_b = [Piece(King(), Black, Square('e', 8)), Piece(Pawn(Black), Black, Square('b',7))]
+    board = Board(pieces_w+pieces_b)
+    assert board.possible_moves(White) == {(p, t) for p in pieces_w for t in p.possible_moves(board)}
+    assert board.possible_moves(Black) == {(p, t) for p in pieces_b for t in p.possible_moves(board)}
 
 def test_Board_possible_moves_give_check_King():
     assert Board([Piece(King(), White, Square('a',1))]).possible_moves(White, give_check=True) == set()
@@ -371,8 +373,51 @@ def test_Board_possible_moves_give_check_King():
 def test_Board_possible_moves_give_check_Pawn():
     pos = Square('d',2)
     color = White
-    board = Board([Piece(Pawn(color), color, pos)])
-    assert board.possible_moves(color, give_check=True) == Pawn(color).legal_moves(pos, board, only_attacked=True)
+    piece = Piece(Pawn(color), color, pos)
+    board = Board([piece])
+    assert board.possible_moves(color, give_check=True) == {(piece, target) for target in Pawn(color).legal_moves(pos, board, only_attacked=True)}
+
+def test_Board_possible_moves_check():
+    pieces = [Piece(King(), White, Square('a', 1)),
+            Piece(Rook(), White, Square('b', 5)),
+            Piece(Pawn(White), White, Square('b',1)),
+            Piece(Pawn(White), White, Square('b',2)),
+            Piece(Queen(), Black, Square('a', 8))]
+    assert Board(pieces).possible_moves(White) == set([(pieces[1], Square('a', 5))])
+
+def test_Board_is_check_no():
+    assert Board([Piece(King(), White, Square('d', 5))]).is_check(White) == False
+
+def test_Board_is_check_yes():
+    queen = Piece(Queen(), Black, Square('a', 8))
+    board = Board([Piece(King(), White, Square('a', 1)), queen])
+    board.print(mark=queen.possible_moves(board))
+    assert Board([Piece(King(), White, Square('a', 1)), Piece(Queen(), Black, Square('a', 8))]).is_check(White) == True
+
+def test_Board_is_checkmate_no():
+    """This is not a checkmate as a piece can be moved in between."""
+    pieces = [Piece(King(), White, Square('a', 1)),
+            Piece(Queen(), White, Square('b', 5)),
+            Piece(Pawn(White), White, Square('b',1)),
+            Piece(Pawn(White), White, Square('b',2)),
+            Piece(Queen(), Black, Square('a', 8))]
+    assert Board(pieces).is_check(White) == True
+    assert Board(pieces).is_checkmate(White) == False
+
+def test_Board_is_checkmate_yes():
+    pieces = [Piece(King(), White, Square('a', 1)),
+            Piece(Pawn(White), White, Square('h', 4)),
+            Piece(Queen(), Black, Square('a', 8)),
+            Piece(Queen(), Black, Square('h', 8)),
+            Piece(Queen(), Black, Square('h', 1))]
+    assert Board(pieces).is_checkmate(White) == True
+
+def test_Board_is_stalemate():
+    pieces = [Piece(King(), White, Square('a', 1)),
+            Piece(Rook(), Black, Square('b', 2)),
+            Piece(King(), Black, Square('c', 3))]
+    assert Board(pieces).is_stalemate(White) == True
+    assert Board(pieces).is_checkmate(White) == False
 
 def test_Board_print(capsys):
     board = Board([Piece(Queen(), White, Square('d', 5))])
@@ -427,7 +472,6 @@ captured:
   black: none
 """
 
-
 def test_Board_print_mark_unicode(capsys):
     Board([]).print(unicode=True, color=False, mark=[(0,0), (0,1), (1,0), (1,1)])
     assert capsys.readouterr().out == """ abcdefgh 
@@ -444,7 +488,6 @@ captured:
   white: none
   black: none
 """
-
 
 def test_Board_print_mark_ascii(capsys):
     Board([]).print(unicode=False, color=False, mark=[(0,0), (0,1), (1,0), (1,1)])

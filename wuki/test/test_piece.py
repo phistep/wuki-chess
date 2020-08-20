@@ -1,8 +1,8 @@
 import pytest
 
-from ..piece import AbstractPiece, Piece, King, Queen, Rook, Bishop, Knight, Pawn
+from ..piece import AbstractPiece, Piece, King, Queen, Rook, Bishop, Knight, Pawn, all_pieces, piece_by_letter
 from ..board import White, Black, BOARD_LEN, Square, Board
-from ..errors import IllegalMoveError
+from ..exceptions import IllegalMoveError
 
 @pytest.fixture
 def castling_board():
@@ -368,3 +368,11 @@ def test_Pawn_legal_moves_en_passent():
     board = Board([pawn_w, pawn_b])
     board = board.make_move(pawn_w, Square('e',4))
     assert Pawn(Black).possible_moves(pawn_b.position, board=board) == set([Square('e',4), Square('d',4)])
+
+def test_all_pieces_set():
+    assert all_pieces == set([King(), Queen(), Bishop(), Knight(), Rook(), Pawn(White), Pawn(Black)])
+
+def test_piece_by_letter():
+    for p in all_pieces:
+        assert piece_by_letter[p.letter] == p
+

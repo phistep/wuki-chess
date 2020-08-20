@@ -5,7 +5,7 @@ import atexit
 
 from .game import Game
 from .board import Square, Board, Black
-from .errors import IllegalMoveError, MoveParseError, AmbigousMoveError
+from .exceptions import IllegalMoveError, MoveParseError, AmbigousMoveError
 
 class BreakInteractiveException(Exception):
     pass

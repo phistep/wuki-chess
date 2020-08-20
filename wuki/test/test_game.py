@@ -3,7 +3,8 @@ import pytest
 from ..game import Game
 from .. import piece
 from ..board import White, Black, Board, Square
-from ..errors import MoveParseError, WrongPlayerError, IllegalMoveError, AmbigousMoveError
+from ..exceptions import MoveParseError, WrongPlayerError, IllegalMoveError, AmbigousMoveError
+from ..exceptions import GameOverException, CheckException, CheckmateException
 
 @pytest.fixture
 def moves():
@@ -149,6 +150,20 @@ def test_Game_make_move_capture():
     assert game.boards[4].captured[Black] == set([captive])
     assert game.boards[5].captured[Black] == set([captive])
 
+@pytest.mark.skip(reason="feature really slow")
+def test_Game_make_move_game_over():
+    pieces = [piece.Piece(piece.King(), White, Square('a', 1)),
+            piece.Piece(piece.Pawn(White), White, Square('h', 4)),
+            piece.Piece(piece.Queen(), Black, Square('a', 8)),
+            piece.Piece(piece.Queen(), Black, Square('h', 8)),
+            piece.Piece(piece.Queen(), Black, Square('h', 1))]
+    game = Game([])
+    game.boards[-1] = Board(pieces)
+    with pytest.raises(GameOverException) as e:
+        game.make_move(pieces[1], Square('h', 5))
+    assert e.reason == 'checkmate'
+    assert e.winner == Black
+
 def test_Game_print_board(capsys):
     game = Game([])
     game.print_board(unicode=True)
@@ -185,3 +200,42 @@ def test_Game_undo():
     assert len(game) == 0
     assert game.current_player == White
 
+def test_Game_check_state_regular():
+    game = Game([])
+    game.check_state(White)
+
+def test_Game_check_state_check():
+    game = Game([])
+    game.boards[-1] = Board([piece.Piece(piece.King(), White, Square('a', 1)), piece.Piece(piece.Queen(), Black, Square('a', 8))])
+    with pytest.raises(CheckException) as e:
+        game.check_state()
+    assert e.value.player == White
+
+def test_Game_check_state_check_block():
+    """This is not a checkmate as a piece can be moved in between."""
+    pieces = [piece.Piece(piece.King(), White, Square('a', 1)),
+            piece.Piece(piece.Queen(), White, Square('b', 5)),
+            piece.Piece(piece.Pawn(White), White, Square('b',1)),
+            piece.Piece(piece.Pawn(White), White, Square('b',2)),
+            piece.Piece(piece.Queen(), Black, Square('a', 8))]
+    game = Game([])
+    game.boards[-1] = Board(pieces)
+    with pytest.raises(CheckException) as e:
+        game.check_state()
+    assert e.value.player == White
+
+def test_Game_check_state_checkmate():
+    pieces = [piece.Piece(piece.King(), White, Square('a', 1)),
+            piece.Piece(piece.Pawn(White), White, Square('h', 4)),
+            piece.Piece(piece.Queen(), Black, Square('a', 8)),
+            piece.Piece(piece.Queen(), Black, Square('h', 8)),
+            piece.Piece(piece.Queen(), Black, Square('h', 1))]
+    game = Game([])
+    game.boards[-1] = Board(pieces)
+    with pytest.raises(CheckmateException) as e:
+        game.check_state()
+    assert e.value.winner == White
+
+@pytest.mark.skip(reason='feature not implemented')
+def test_Game_check_state_draw_stalemate():
+    assert False
