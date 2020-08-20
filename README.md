@@ -12,13 +12,13 @@ a pair of moves per line
 
 The file is supplied as a commandline argument.
 
-	$ PYTHONPATH=. bin/wuki match.txt
+	$ PYTHONPATH=. bin/wuki -f match.txt
 
 For information about other arguments, ask `bin/wuki --help`.
 
 ## Use the Library
 For now you gotta read the source. The commandline application is in
-`wuki/__init_.py:main()`. The main game logic in `wuki/game.py`.
+`wuki/cli.py:CLI.main()`. The main game logic in `wuki/game.py`.
 
 
 ## TODO
@@ -26,24 +26,45 @@ For now you gotta read the source. The commandline application is in
 	- check game state function super slow, how to realisticly use it in Game.make_move()
 		- move is_stalemate and is_checkmate into Game / just into check_state
 		- dont check is_check and king.possible_moves twice
+		- profiling https://docs.python.org/3/library/profile.html
 	- don't always run slow tests
 	- Color.__negate__() -> __not__()
 	- use exceptions to handle promotion, castling?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
 	- check and checkmate gamefile parsing and writing
 	- rules
-		- draw!
-			- one player has no possible moves but is not in check
-			- both players have empty Game.possible_moves()
-			- threefold repitition: same player has same board three times in a row
-			- fifty-move rule: 50 moves without captire or pawn move
-			- no path to checkmate (ooph)
 		- pawn promotion
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
 			- cannot move when touched
 			- cannot move through check!
+		- draw
+			- threefold repitition: same player has same board three times in a row
+			- fifty-move rule: 50 moves without captire or pawn move
+			- no path to checkmate (ooph)
 		- en passent
-- find next move
+- cli
+	- support Portable game notation
+		- read and write
+		- comments
+		- time
+		- markers for check etc.
+	- interactive mode
+		- check into prompt, checkmate support
+		- use https://docs.python.org/3/library/cmd.html
+		- cmd_show: when arguments black/white show all possible movable pieces for player
+		- add color block to prompt
+		- two player or ai mode
+		- timestamps and time constraint
+		- restore input on `IllegalMoveError` or `MoveParseError`
+		- trap ^C
+	- --quiet: only print a move if there is one (by --move or by AI)
+	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
+	- matplotlib for pdf game output
+	- localization?
+	- wxpython gui
+	- matplotlib gui?
+	- online mode (host server, play against players/ais)
+- ai
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
 		- add castling if possible (goes in `Board`
@@ -64,29 +85,8 @@ For now you gotta read the source. The commandline application is in
 			- cover
 			- freedom of movement
 			- control over center
-- cli
-	- --quiet: only print a move if there is one (by --move or by AI)
-	- cmd_show: when no arguments show all possible movable pieces for player
-	- check into prompt, checkmate support
-	- add color block to prompt
-	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
-	- parse match_file into own function (support full Algebraic Notation)
-	- support Portable game notation
-		- read and write
-		- comments
-		- time
-		- markers for check etc.
-	- interactive mode
-		- two player or ai mode
-		- timestamps and time constraint
-		- restore input on `IllegalMoveError` or `MoveParseError`
-		- trap ^C
-	- matplotlib for pdf game output
-	- localization?
-	- wxpython gui
-	- matplotlib gui?
-	- online mode (host server, play against players/ais)
 - package
+	- better readme (rst, examples, todo into own file?)
 	- sphinx docs -> ghpages
 	- dependencies, installer
 	- package docsting header (author, etc)
