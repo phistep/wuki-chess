@@ -4,8 +4,9 @@ from sys import exit
 import atexit
 
 from .game import Game
-from .board import Square, Board, Black
+from .board import Square, Board, White, Black
 from .exceptions import IllegalMoveError, MoveParseError, AmbigousMoveError
+from . import ai
 
 class BreakInteractiveException(Exception):
     pass
@@ -30,6 +31,9 @@ class CLI:
                 help = 'Print all moves in the game')
         parser.add_argument('-A', '--ascii', action='store_true',
                 help='Use ascii characters and letters instead of unicode chess symbols')
+        # TODO rename ascii -U --no-unicode, --all-moves => -A, -a -> --ai
+        parser.add_argument('--ai', action='store_true',
+                help="Play against AI, you play white.")
         parser.add_argument('-C', '--no-color', action='store_true',
                 help="Don't use xterm-265color control sequences for colored output")
         parser.add_argument('-f', '--match-file', type=str,
@@ -67,6 +71,9 @@ class CLI:
 
         if self.args.move:
             self.make_move(self.args.move)
+
+        if self.args.ai:
+            self.ai = ai.WukiAI(Black)
 
         if self.args.interactive:
             try:
@@ -148,7 +155,13 @@ class CLI:
         print("Type `help` for a list of available commands.")
         while True:
             try:
-                command_line = input(f'{self.game.current_player}: ')
+                if self.args.ai:
+                    if self.game.current_player == self.ai.color:
+                        move = self.ai.get_move(self.game.boards[-1])
+                        # TODO error handling
+                        print(f"\nAI ({self.ai.color}): {self.game.move_str(move)}")
+                        self.make_move(self.game.move_str(move))
+                command_line = input(f'You ({self.game.current_player}): ')
                 parts = command_line.split(' ')
 
                 # special command to break out of the interactive loop without
@@ -209,7 +222,7 @@ class CLI:
 
     def cmd_undo(self, *args):
         """undo: undo the last move"""
-        self.game.undo()
+        self.game.undo(2 if self.args.ai else 1)
         if self.args.auto_save:
             self.write_match_file()
         self.print_board()

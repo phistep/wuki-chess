@@ -397,6 +397,7 @@ class Board:
             for move in possible_moves.copy():
                 if self.make_move(*move).is_check(player):
                     possible_moves.discard(move)
+        possible_moves
         return possible_moves
 
     def is_check(self, player):

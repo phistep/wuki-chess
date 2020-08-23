@@ -42,6 +42,7 @@ For now you gotta read the source. The commandline application is in
 			- fifty-move rule: 50 moves without captire or pawn move
 			- no path to checkmate (ooph)
 		- en passent
+	- different verbosity for ai and cli https://docs.python.org/3/howto/logging.html
 - cli
 	- support Portable game notation
 		- read and write
@@ -57,7 +58,10 @@ For now you gotta read the source. The commandline application is in
 		- timestamps and time constraint
 		- restore input on `IllegalMoveError` or `MoveParseError`
 		- trap ^C
-	- --quiet: only print a move if there is one (by --move or by AI)
+	- convenience flags
+		- -q --quiet: only print a move if there is one (by --move or by AI)
+		- -w --white-ai,  -b --black-ai, -r --random-ai
+		- -W --white-name, -B --black-name (for prompt, pgn file)
 	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
 	- matplotlib for pdf game output
 	- localization?

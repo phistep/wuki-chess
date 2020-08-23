@@ -158,12 +158,15 @@ class Game:
         self.moves.append((piece, target))
         self.current_player = ~self.current_player
 
-    def undo(self):
-        """Undo the last move"""
-        if len(self.boards) > 1 and len(self.moves) > 0:
-            del self.boards[-1]
-            del self.moves[-1]
-            self.current_player = ~self.current_player
+    def undo(self, n=1):
+        """Undo the last move
+
+        :param n: how many moves to undo
+        """
+        if len(self.boards) > n and len(self.moves) > n-1:
+            del self.boards[-1:-n]
+            del self.moves[-1:-n]
+            self.current_player = self.current_player if n%2==0 else ~self.current_player
 
     def print_board(self, board=None, **kwargs):
         """Print a board or the current board.
