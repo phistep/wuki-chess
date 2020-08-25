@@ -164,8 +164,8 @@ class Game:
         :param n: how many moves to undo
         """
         if len(self.boards) > n and len(self.moves) > n-1:
-            del self.boards[-1:-n]
-            del self.moves[-1:-n]
+            del self.boards[-n:]
+            del self.moves[-n:]
             self.current_player = self.current_player if n%2==0 else ~self.current_player
 
     def print_board(self, board=None, **kwargs):
