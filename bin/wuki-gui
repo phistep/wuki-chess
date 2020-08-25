@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+
+if __name__ == '__main__':
+    import wx
+    from wuki.gui import GUI
+    app = wx.App()
+    GUI().Show()
+    app.MainLoop()

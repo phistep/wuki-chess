@@ -27,6 +27,7 @@ For now you gotta read the source. The commandline application is in
 		- move is_stalemate and is_checkmate into Game / just into check_state
 		- dont check is_check and king.possible_moves twice
 		- profiling https://docs.python.org/3/library/profile.html
+	- in make_move shortcut the legality checks if you know the move comes from possible_moves (caching like in VAMP evaluation)
 	- don't always run slow tests
 	- Color.__negate__() -> __not__()
 	- use exceptions to handle promotion, castling?
@@ -62,12 +63,20 @@ For now you gotta read the source. The commandline application is in
 		- -q --quiet: only print a move if there is one (by --move or by AI)
 		- -w --white-ai,  -b --black-ai, -r --random-ai
 		- -W --white-name, -B --black-name (for prompt, pgn file)
+		- bong cloud opening
 	- box drawing https://en.wikipedia.org/wiki/Box-drawing_character
 	- matplotlib for pdf game output
 	- localization?
-	- wxpython gui
-	- matplotlib gui?
 	- online mode (host server, play against players/ais)
+- gui
+	- update UI before AI starts to think
+	- loading indicator for AI
+	- select/load/save game file
+	- show current player
+	- select opponent: human/ai
+	- show captured
+	- pawn promotion
+	- handle game end
 - ai
 	- go through all own pieces and generate list of all possible moves and board positions
 		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
