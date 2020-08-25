@@ -26,7 +26,7 @@ For now you gotta read the source. The commandline application is in
 	- check game state function super slow, how to realisticly use it in Game.make_move()
 		- move is_stalemate and is_checkmate into Game / just into check_state
 		- dont check is_check and king.possible_moves twice
-		- profiling https://docs.python.org/3/library/profile.html
+		- profile blocked_by
 	- in make_move shortcut the legality checks if you know the move comes from possible_moves (caching like in VAMP evaluation)
 	- don't always run slow tests
 	- Color.__negate__() -> __not__()
@@ -72,6 +72,7 @@ For now you gotta read the source. The commandline application is in
 	- online mode (host server, play against players/ais)
 - gui
 	- update UI before AI starts to think
+	- colorize last move
 	- loading indicator for AI
 	- undo
 	- select/load/save game file
@@ -80,6 +81,7 @@ For now you gotta read the source. The commandline application is in
 	- show captured
 	- pawn promotion
 	- handle game end
+	- icon, app name, about, etc
 - ai
 	- lookahead
 	- evaluation function for each board position

@@ -57,22 +57,21 @@ class Square:
         # TODO bounds check?
         #      use __new__ tow return a None object if not within bounds?
         # TODO support two piece string instancation ('b5') and comparison
+        self._diagonals = None
 
         if isinstance(x, Square):
             self.x = x.x
             self.y = x.y
             return
-        if y is None and isinstance(x, tuple) and len(x) == 2:
+        if y is None:
             xy = x
-        elif y is not None:
-            xy = (x, y)
         else:
-            raise ValueError("Either x has to be a tuple or x and y coordinates have to be given separately")
+            xy = (x, y)
 
-        if isinstance(xy[0], int) and isinstance(xy[1], int):
+        if isinstance(xy[0], int):
             # coordinates given numerically: (1,4)
             self.x, self.y = xy
-        elif isinstance(xy[0], str) and len(xy[0]) == 1 and isinstance(xy[1], int):
+        elif isinstance(xy[0], str):
             # coordinates given in chess notation: ('b',5)
             self.x = "abcdefgh".index(xy[0])
             self.y = xy[1] - 1
@@ -131,11 +130,13 @@ class Square:
 
     def diagonals(self):
         """Gives all diagonally connected positions within the board (including self)"""
-        rising   = [Square(self.x+i, self.y+i) for i in range(BOARD_LEN)]
-        rising  += [Square(self.x-i, self.y-i) for i in range(BOARD_LEN)]
-        falling  = [Square(self.x+i, self.y-i) for i in range(BOARD_LEN)]
-        falling += [Square(self.x-i, self.y+i) for i in range(BOARD_LEN)]
-        return set(filter(within_board, rising+falling))
+        if self._diagonals is None:
+            rising   = [Square(self.x+i, self.y+i) for i in range(BOARD_LEN)]
+            rising  += [Square(self.x-i, self.y-i) for i in range(BOARD_LEN)]
+            falling  = [Square(self.x+i, self.y-i) for i in range(BOARD_LEN)]
+            falling += [Square(self.x-i, self.y+i) for i in range(BOARD_LEN)]
+            self._diagonals = set(filter(within_board, rising+falling))
+        return self._diagonals
 
     def orthogonals(self):
         """Gives all orthogonally connected positions within the board (including self)"""

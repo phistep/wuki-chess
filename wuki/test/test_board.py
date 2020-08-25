@@ -57,16 +57,6 @@ def test_Square_init_from_Square():
     assert sq2.x == sq.x
     assert sq2.y == sq.y
 
-def test_Square_init_no_tuple():
-    with pytest.raises(ValueError):
-        Square('a')
-
-def test_Square_init_wrong_format():
-    with pytest.raises(ValueError):
-        Square(2, 'a')
-    with pytest.raises(ValueError):
-        Square('a', '2')
-
 def test_Square_file_rank():
     sq = Square('c',4)
     file_, rank = sq.file_rank()
