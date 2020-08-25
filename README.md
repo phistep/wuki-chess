@@ -53,6 +53,7 @@ For now you gotta read the source. The commandline application is in
 		- time
 		- markers for check etc.
 	- interactive mode
+		- colorize last move
 		- check into prompt, checkmate support
 		- use https://docs.python.org/3/library/cmd.html
 		- cmd_show: when arguments black/white show all possible movable pieces for player
@@ -72,7 +73,6 @@ For now you gotta read the source. The commandline application is in
 	- online mode (host server, play against players/ais)
 - gui
 	- update UI before AI starts to think
-	- colorize last move
 	- loading indicator for AI
 	- undo
 	- select/load/save game file

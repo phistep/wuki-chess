@@ -9,6 +9,7 @@ class GUI(wx.Frame):
     ColourBgWhite = wx.Colour(200,200,200)
     ColourBgBlack = wx.Colour(100,100,100)
     ColourBgHighlight = wx.Colour(200,200,0)
+    ColourBgHist = wx.Colour(70,130,180)
 
     def __init__(self, parent=None):
         """Setup a Game, an AI and render the board."""
@@ -16,6 +17,7 @@ class GUI(wx.Frame):
         self.ai = ai.WukiAI(Black)
         self.buttons = {}
         self.highlighted = []
+        self.last_move_squares = []
         self.move_source = None
         self.game = Game([])
         self.RenderBoard()
@@ -71,6 +73,15 @@ class GUI(wx.Frame):
             button.SetLabel('')
             button.Disable()
 
+    def ResetButtonBg(self, position):
+        """Reset a buttons background color, i.e. remove any highlighting and
+        set to the color of the square it represents
+
+        :param Square position: the game square the button represents
+        """
+        square_color = self.ColourBgWhite if position.color() == White else self.ColourBgBlack
+        self.buttons[position].SetBackgroundColour(square_color)
+
     def OnClick(self, event):
         """Event handler for board button press. Either selects or deselects
         a piece for moving or selects its target and performs the move.
@@ -104,18 +115,21 @@ class GUI(wx.Frame):
             self.EnablePlayer()
 
     def Highlight(self, highlight=True):
-        """Highlight all squares that are in self.highlighted
+        """Highlight all squares that are in self.highlighted and
+        self.last_move_squares.
 
         :param highlight: bool wether to enable or clear the highlighting
+            (only affects self.highlighted)
         """
+        for square in self.last_move_squares:
+            self.buttons[square].SetBackgroundColour(self.ColourBgHist)
         for button in self.highlighted:
             if highlight:
                 button.Enable()
                 button.SetBackgroundColour(self.ColourBgHighlight)
             else:
                 button.Disable()
-                square_color = self.ColourBgWhite if button.square.color() == White else self.ColourBgBlack
-                button.SetBackgroundColour(square_color)
+                self.ResetButtonBg(button.square)
                 self.highlighted = []
 
     def MakeMove(self, source, target):
@@ -132,10 +146,12 @@ class GUI(wx.Frame):
 
     def MakeAIMove(self):
         """Let the AI make a move"""
-        move = self.ai.get_move(self.game.boards[-1])
-        # TODO error handling
-        print(f"\nAI ({self.ai.color}): {self.game.move_str(move)}")
-        self.MakeMove(*move)
+        piece, target = self.ai.get_move(self.game.boards[-1])
+        self.MakeMove(piece, target)
+        for s in self.last_move_squares:
+            self.ResetButtonBg(s)
+        self.last_move_squares = [piece.position, target]
+        self.Highlight()
 
     def EnablePlayer(self, player=None):
         """Enable all buttons for the current or provided player and disable
