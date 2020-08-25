@@ -34,7 +34,9 @@ For now you gotta read the source. The commandline application is in
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
 	- check and checkmate gamefile parsing and writing
 	- rules
-		- pawn promotion
+		- pawn promotion (goes in `Piece` and `Pawn`?
+			`Piece.move_to()` calls `AbstractPece.move_to()`
+			`AbstractPiece.move_to()` just pass in other piece types, raises `PawnPromotionException`
 		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
 			- cannot move when touched
 			- cannot move through check!
@@ -71,6 +73,7 @@ For now you gotta read the source. The commandline application is in
 - gui
 	- update UI before AI starts to think
 	- loading indicator for AI
+	- undo
 	- select/load/save game file
 	- show current player
 	- select opponent: human/ai
@@ -78,15 +81,9 @@ For now you gotta read the source. The commandline application is in
 	- pawn promotion
 	- handle game end
 - ai
-	- go through all own pieces and generate list of all possible moves and board positions
-		- remove moves that land on pieces that are on the board from the list returned by `Piece.possible_moves()`
-		- add castling if possible (goes in `Board`
-		- handle pawn promotion (goes in `Piece` and `Pawn`?
-			`Piece.move_to()` calls `AbstractPece.move_to()`
-			`AbstractPiece.move_to()` just pass in other piece types, raises `PawnPromotionException`
 	- lookahead
 	- evaluation function for each board position
-		- implement each as own function, sum total score,
+		- init with map for weight for each eval function
 		- allow black/whitelist for strategies
 		- allow to pass list of custom strategy functions
 			- check
@@ -98,6 +95,13 @@ For now you gotta read the source. The commandline application is in
 			- cover
 			- freedom of movement
 			- control over center
+			- pawn walk if noone in front -> promotion
+	- multicore evaluation (niceness on unix)
+		import multiprocessing as mp
+		if not args.processes:
+			args.processes = mp.cpu_count()
+		with mp.Pool(args.processes) as worker:
+			worker.map(run_job, jobs)
 - package
 	- better readme (rst, examples, todo into own file?)
 	- sphinx docs -> ghpages

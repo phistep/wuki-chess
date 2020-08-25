@@ -200,6 +200,7 @@ def test_Game_undo():
     assert len(game) == 0
     assert game.current_player == White
 
+@pytest.mark.skip(reason="feature really slow")
 def test_Game_check_state_regular():
     game = Game([])
     game.check_state(White)
