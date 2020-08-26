@@ -269,7 +269,7 @@ def test_Board_add():
     pos = Square('d', 5)
     piece_ = Piece(Queen(), White, pos)
     added = board.add(piece_)
-    assert board.pieces() == {added}
+    assert board.pieces() == added
     assert board.pieces() == {piece_}
     assert piece_ in board
     assert pos in board

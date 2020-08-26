@@ -322,7 +322,7 @@ class Board:
         self.index[piece.position] = piece
         assert piece in self
         assert self.index[piece.position] == piece
-        return piece
+        return self.pieces()
 
     def pieces(self, kind=None, color=None):
         """Returns a list of all pieces on the board. If kind is given (as an
