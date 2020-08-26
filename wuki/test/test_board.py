@@ -57,6 +57,15 @@ def test_Square_init_from_Square():
     assert sq2.x == sq.x
     assert sq2.y == sq.y
 
+def test_Square_init_single_str():
+    Square('a4')
+
+def test_Square_init_malformed():
+    with pytest.raises(ValueError):
+        Square([int])
+    with pytest.raises(ValueError):
+        Square('z', 5)
+
 def test_Square_file_rank():
     sq = Square('c',4)
     file_, rank = sq.file_rank()

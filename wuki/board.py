@@ -72,9 +72,9 @@ class Square:
             # coordinates given numerically: (1,4)
             self.x, self.y = xy
         elif isinstance(xy[0], str):
-            # coordinates given in chess notation: ('b',5)
+            # coordinates given in chess notation: ('b',5) or 'b5'
             self.x = "abcdefgh".index(xy[0])
-            self.y = xy[1] - 1
+            self.y = int(xy[1]) - 1
         else:
             raise ValueError("Given coordinates have either (x,y) or (file,rank)")
 
