@@ -55,6 +55,9 @@ class CLI:
         moves = self.parse_match_file() if self.args.match_file else []
         self.game = Game(moves)
 
+        if self.args.ai:
+            self.ai = ai.WukiAI(Black)
+
         atexit.register(self.cmd_exit)
 
     def main(self):
@@ -72,9 +75,6 @@ class CLI:
         if self.args.move:
             self.make_move(self.args.move)
 
-        if self.args.ai:
-            self.ai = ai.WukiAI(Black)
-
         if self.args.interactive:
             try:
                 self.interactive_loop()
@@ -82,8 +82,14 @@ class CLI:
             # exit()
             except BreakInteractiveException:
                 pass
-
-        print('next:', self.game.current_player)
+        else:
+            if self.args.ai and self.game.current_player == self.ai.color:
+                move = self.ai.get_move(self.game.boards[-1])
+                # TODO error handling
+                print(self.game.move_str(move))
+                self.make_move(self.game.move_str(move))
+            else:
+                print('next:', self.game.current_player)
 
     def print_board(self, board=None, **kwargs):
         """Print a board to the screen. If none is given, print current board.

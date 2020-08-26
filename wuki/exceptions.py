@@ -29,7 +29,7 @@ class CheckmateException(GameOverException):
 
 class DrawException(GameOverException):
     """The game ended by remis."""
-    def __init__(reason):
+    def __init__(self, reason):
         self.winner = None
         self.reason = reason
 

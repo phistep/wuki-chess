@@ -358,6 +358,13 @@ def  test_Bord_make_move_capture_self():
     with pytest.raises(IllegalMoveError):
         board.make_move(pieces[0], pos_b)
 
+def test_Board_make_move_check():
+    # nothing special happenes on a check move
+    king = Piece(King(), White, Square('a',1))
+    attacker = Piece(Queen(), Black, Square('b',8))
+    board = Board([king,attacker])
+    board.make_move(attacker, Square('a',8))
+
 def test_Board_possible_moves():
     # we need kings out of check to get possible moves
     pieces_w = [Piece(Queen(), White, Square('a',1)), Piece(Pawn(White), White, Square('b',2)), Piece(King(), White, Square('e', 1))]

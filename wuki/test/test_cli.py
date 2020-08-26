@@ -2,7 +2,8 @@ import pytest
 
 from ..cli import CLI, BreakInteractiveException
 from ..game import Game
-from ..board import Square
+from ..board import White, Black, Square, Board
+from ..piece import Piece, King, Pawn
 
 from .test_game import ambigous_game
 
@@ -152,6 +153,22 @@ def test_interactive_loop_exit(mock_input):
     with pytest.raises(SystemExit) as e:
         cli.interactive_loop()
     assert e.value.code == 0
+
+@pytest.mark.slow()
+@pytest.mark.mock_input_data('e4')
+def test_interactive_loop_ai(mock_input):
+    cli = CLI(['--interactive', '--ai'])
+    with pytest.raises(BreakInteractiveException):
+        cli.interactive_loop()
+    assert len(cli.game) == 2
+
+def test_ai(capsys):
+    cli = CLI(['--ai'])
+    cli.game.boards[-1] = Board([Piece(King(), Black, Square('a8')), Piece(Pawn(White), White, Square('b7'))])
+    cli.game.current_player = Black
+    cli.main()
+    assert len(cli.game) == 1
+    assert 'a8Kb7' in capsys.readouterr().out
 
 def test_cmd_help(capsys):
     help_text = """Available commands:

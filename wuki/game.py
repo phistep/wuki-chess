@@ -147,13 +147,12 @@ class Game:
             raise ValueError("Either move is passed as string or piece and target have to be supplied")
         if piece.color != self.current_player:
             raise WrongPlayerError(f"current player: {self.current_player}")
-        try:
-            # TODO this is incredibly slow, maybe not do this every round?
-            #self.check_state()
-            pass
-        except CheckException:
-            # a check does not prevent a new move to be made
-            pass
+        # TODO this is incredibly slow, maybe not do this every round?
+        #try:
+        #    self.check_state()
+        #except CheckException:
+        #    # a check does not prevent a new move to be made
+        #    pass
         self.boards.append(self.boards[-1].make_move(piece, target))
         self.moves.append((piece, target))
         self.current_player = ~self.current_player
