@@ -125,24 +125,20 @@ game.print_board()
 		- dont check is_check and king.possible_moves twice
 		- profile blocked_by
 	- in make_move shortcut the legality checks if you know the move comes from possible_moves (caching like in VAMP evaluation)
-	- don't always run slow tests
-	- Color.__negate__() -> __not__()
-	- use exceptions to handle promotion, castling?
 	- give reasons to IllegalMoveError(reason=""), eg check, wrong moving
-	- check and checkmate gamefile parsing and writing
 	- rules
 		- pawn promotion (goes in `Piece` and `Pawn`?
+			- use exceptions to handle promotion?
 			`Piece.move_to()` calls `AbstractPece.move_to()`
 			`AbstractPiece.move_to()` just pass in other piece types, raises `PawnPromotionException`
-		- castling (add `.touched` attribute to `Piece`, also simplifies pawn initial two square movement)
-			- cannot move when touched
-			- cannot move through check!
 		- draw
 			- threefold repitition: same player has same board three times in a row
 			- fifty-move rule: 50 moves without captire or pawn move
 			- no path to checkmate (ooph)
 		- en passent
 	- different verbosity for ai and cli https://docs.python.org/3/howto/logging.html
+	- check and checkmate gamefile parsing and writing
+	- Color.__negate__() -> __not__()
 - cli
 	- support Portable game notation
 		- read and write
@@ -155,7 +151,6 @@ game.print_board()
 		- use https://docs.python.org/3/library/cmd.html
 		- cmd_show: when arguments black/white show all possible movable pieces for player
 		- add color block to prompt
-		- two player or ai mode
 		- timestamps and time constraint
 		- restore input on `IllegalMoveError` or `MoveParseError`
 		- trap ^C
@@ -187,13 +182,12 @@ game.print_board()
 		- allow to pass list of custom strategy functions
 			- check
 			- checkmate
-			- capturing
+			- capturing (only equal weight or uncovered)
 			- pawn promotion
 			- double pawns
 			- attacks
 			- cover
 			- freedom of movement
-			- control over center
 			- pawn walk if noone in front -> promotion
 		- error
 			Traceback (most recent call last):

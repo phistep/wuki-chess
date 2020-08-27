@@ -6,6 +6,12 @@ class AbstractPiece:
     def __init__(self):
         """sets .name, .letter, .symbol map, .color"""
         raise NotImplementedError # pragma: no cover
+        # name of the piece, like "King" or "Queen
+        self.name = None # pragma: no cover
+        # one letter identifier used in PGN or SAN
+        self.letter = None # pragma: no cover
+        # unicode symbol for the piece in either color
+        self.symbol = {White:None, Black:None} # pragma: no cover
 
     def __str__(self):
         return self.name
@@ -22,7 +28,7 @@ class AbstractPiece:
     def __hash__(self):
         return hash(self.name)
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, board=None, only_attacked=False):
         """Returns a list of possible moves of the piece. Some pieces need
         information about the board for this.
 
@@ -30,6 +36,9 @@ class AbstractPiece:
             shall be made
         :param Board board: the board on which the piece needs to find its
             possible moves
+        :param bool only_attacked: return squares that are attacked, not the
+            ones that can be moved to (for pieces for which these two are
+            different)
 
         :returns moves: a list of Sqaures that the piece could move to
         """
@@ -39,12 +48,14 @@ class AbstractPiece:
 class Piece(AbstractPiece):
     """Instantiation of general piece type on the board"""
 
-    def __init__(self, piece, color, position):
+    def __init__(self, piece, color, position, touched=False):
         """A new piece on the board.
 
         :param AbstractPiece piece: the kind of piece
         :param Color color: its color
         :param Square square: its position on the board
+        :param bool touched: whether the piece has been touched before
+            (important for castling)
         """
         self.piece = piece
         self.name = piece.name
@@ -56,6 +67,7 @@ class Piece(AbstractPiece):
         if not position.within_board():
             raise ValueError("Piece can only be initialized on a square within the board")
         self.position = position
+        self.touched = touched
 
     def __str__(self):
         return str(self.position)+self.letter
@@ -97,9 +109,9 @@ class Piece(AbstractPiece):
             # Knights don't get blocked by other pieces
             pass
         elif self == King():
-            # TODO Kings can castle under specific circumstances
             # Kings cannot move themselves into check
-            for _, square_in_check, in board.possible_moves(~self.color, give_check=True):
+            squares_in_check = [sq for p, sq in board.possible_moves(~self.color, give_check=True)]
+            for square_in_check in squares_in_check:
                 possible_moves.discard(square_in_check)
             try:
                 # treat opponent King separately to avoid infinite recursion
@@ -113,6 +125,30 @@ class Piece(AbstractPiece):
                 # Board has no opponent King. While not being legal, this can
                 # happend for debug/testing purposes and we don't care
                 pass
+            # castling
+            if not self.touched and self.position == (4, self.color.home_y):
+                for rook in board.pieces(kind=Rook(), color=self.color):
+                    if (not rook.touched
+                        and (rook.position == (0, self.color.home_y)
+                          or rook.position == (7, self.color.home_y))):
+                        # we can only castle if neither the king nor the rook
+                        # have been touched before. sitting in the original
+                        # position is not enough
+
+                        # wether the castling is queen or kingside
+                        direction = 1 if rook.position.x > self.position.x else -1
+                        # check if any pieces are between the rook and the king
+                        blocked = False
+                        for dist in range(1,int(self.position.dist(rook.position))):
+                            blocked |= self.position + (dist*direction,0) in board
+                        # check if king is currently under check or moves
+                        # through check
+                        checked = False
+                        for dist in [0,1,2]:
+                            checked |= self.position + (dist*direction,0) in squares_in_check
+                        if not blocked and not checked:
+                            castling_target = self.position + (2*direction,0)
+                            possible_moves.add(castling_target)
         elif self == Pawn(self.color):
             # Pawns cannot capture where they walk, opponent pieces block them
             one_step = self.position + (0, 1*self.color.direction)
@@ -131,18 +167,21 @@ class Piece(AbstractPiece):
                     possible_moves.discard(blocked)
         return possible_moves
 
-    def move_to(self, target, board):
+    def move_to(self, target, board=None):
         """Does not mutate but returns new piece
 
-        :param target: the aquare the pieces should be moved to
+        :param Square target: the square the pieces should be moved to
+        :param Board board: the board on which to perform the move used to
+            check validity of the move. If ommited, no legal check is performed
 
         :returns new_piece: new piece object at the updated position
 
         :raises IllegalMoveError: if move is not possible for te piece
         """
-        if target not in self.possible_moves(board):
-            raise IllegalMoveError(str(self)+str(target))
-        return Piece(self.piece, self.color, target)
+        if board is not None:
+            if target not in self.possible_moves(board):
+                raise IllegalMoveError(str(self)+str(target))
+        return Piece(self.piece, self.color, target, touched=True)
 
 
 class King(AbstractPiece):
@@ -153,7 +192,7 @@ class King(AbstractPiece):
         self.letter = 'K'
         self.symbol = {White:'♔', Black:'♚'}
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, *args, **kwargs):
         moves = [
             position + (+1,  0),
             position + (-1,  0),
@@ -177,7 +216,7 @@ class Queen(AbstractPiece):
         self.letter = 'Q'
         self.symbol = {White:'♕', Black:'♛'}
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, *args, **kwargs):
         moves = position.diagonals() | position.orthogonals()
         moves.discard(position)
         return moves
@@ -191,7 +230,7 @@ class Rook(AbstractPiece):
         self.letter = 'R'
         self.symbol = {White:'♖', Black:'♜'}
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, *args, **kwargs):
         moves = position.orthogonals()
         moves.discard(position)
         return moves
@@ -205,7 +244,7 @@ class Bishop(AbstractPiece):
         self.letter = 'B'
         self.symbol = {White:'♗', Black:'♝'}
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, *args, **kwargs):
         moves = position.diagonals()
         moves.discard(position)
         return moves
@@ -219,7 +258,7 @@ class Knight(AbstractPiece):
         self.letter = 'N'
         self.symbol = {White:'♘', Black:'♞'}
 
-    def legal_moves(self, position, board=None):
+    def legal_moves(self, position, *args, **kwargs):
         verticals   = [position + (step, 0)      for step in [-2,+2]]
         horizontals = [position + (0, step) for step in [-2,+2]]
         moves  = [pos + (0, step) for pos in verticals   for step in [-1,+1]]

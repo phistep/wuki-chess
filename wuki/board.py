@@ -351,6 +351,7 @@ class Board:
         """
         # TODO check for check, checkmate
         new_board = Board(self._pieces, captured=self.captured)
+
         if target in new_board:
             # there is something on the board
             if new_board[target].color == piece.color:
@@ -358,6 +359,22 @@ class Board:
             else:
                 # capturing the piece
                 new_board.capture(new_board[target])
+
+        # castling
+        if piece.piece == pc.King() and abs(piece.position.x - target.x) == 2:
+            if piece.position.x < target.x:
+                # kingside
+                rook = new_board[Square(7, target.y)]
+                rook_target = Square(5, target.y)
+            else:
+                # queenside
+                rook = new_board[Square(0, target.y)]
+                rook_target = Square(3, target.y)
+            new_board.remove(rook)
+            # ommit board to prevent legality check
+            rook = rook.move_to(rook_target)
+            new_board.add(rook)
+
         new_board.remove(piece)
         piece = piece.move_to(target, board=self)
         new_board.add(piece)

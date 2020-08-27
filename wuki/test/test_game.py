@@ -6,6 +6,8 @@ from ..board import White, Black, Board, Square
 from ..exceptions import MoveParseError, WrongPlayerError, IllegalMoveError, AmbigousMoveError
 from ..exceptions import GameOverException, CheckException, CheckmateException, DrawException
 
+from .test_piece import castling_board
+
 @pytest.fixture
 def moves():
     return ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6']
@@ -103,13 +105,31 @@ def test_Game_parse_move_inference_impossible(ambigous_game):
     assert error.value.move == move
     assert error.value.reason == 'Source piece inference not possible'
 
-def test_Game_parse_mave_inference_hint(ambigous_game):
+def test_Game_parse_move_inference_hint(ambigous_game):
     assert ambigous_game.parse_move('fNe5') == (piece.Piece(piece.Knight(), White, Square('f',7)), Square('e',5))
     assert ambigous_game.parse_move('3Ne5') == (piece.Piece(piece.Knight(), White, Square('d',3)), Square('e',5))
+
+def test_Game_parse_move_castling(castling_board):
+    game = Game([])
+    game.boards[-1] = castling_board
+    assert game.parse_move('0-0-0') == (piece.Piece(piece.King(), White, Square('e1')), Square('c1'))
+    assert game.parse_move('0-0') == (piece.Piece(piece.King(), White, Square('e1')), Square('g1'))
+
+def test_Game_parse_move_castling_impossible():
+    game = Game([])
+    with pytest.raises(MoveParseError):
+        game.parse_move('0-0-0')
+    with pytest.raises(MoveParseError):
+        game.parse_move('0-0')
 
 def test_Game_move_str():
     game = Game([])
     assert game.move_str((piece.Piece(piece.Queen(), White, Square('a',1)),Square('a',3))) == 'a1Qa3'
+
+def test_Game_move_str_castling():
+    game = Game([])
+    assert game.move_str((piece.Piece(piece.King(), White, Square('e1')),Square('g1'))) == '0-0'
+    assert game.move_str((piece.Piece(piece.King(), White, Square('e1')),Square('c1'))) == '0-0-0'
 
 def test_Game_len_make_move():
     game = Game([])

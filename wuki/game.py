@@ -46,7 +46,15 @@ class Game:
 
     def move_str(self, move):
         """Format a move tuple (Piece, Square target) into `a3Qa8`."""
-        return '{}{}{}'.format(move[0].position, move[0].letter.upper(), move[1])
+        piece_, target = move
+        if piece_.piece == piece.King():
+            if piece_.position.x - target.x == 2:
+                # queenside
+                return '0-0-0'
+            elif piece_.position.x - target.x == -2:
+                # kingside
+                return '0-0'
+        return '{}{}{}'.format(piece_.position, piece_.letter.upper(), target)
 
     def __str__(self):
         """Algebraic notation of the whole game"""
@@ -87,6 +95,23 @@ class Game:
             current_player = self.current_player
         if board is None:
             board = self.boards[-1]
+
+        # treat castling separately
+        if "0-" in move:
+            y = current_player.home_y
+            king = board[Square(4,y)]
+
+            if move == "0-0":
+                # kingside
+                target = Square(6,y)
+            elif move == "0-0-0":
+                # queenside
+                target = Square(2,y)
+
+            if target in king.possible_moves(board):
+                return king, target
+            else:
+                raise MoveParseError("Castling not possible", move)
 
         piece_letters = set(p.letter.upper() for p in self.boards[0].pieces())
         move_re = ( "(?P<source_file>[a-h])?"        # source file/col  a

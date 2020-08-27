@@ -14,7 +14,7 @@ def castling_board():
             Piece(Rook(), color, Square('h',y+1)),
             ])
         for x in range(BOARD_LEN):
-            pieces.append(Piece(Pawn(color), color, Square(x,y)))
+            pieces.append(Piece(Pawn(color), color, Square(x,y+color.direction)))
     return Board(pieces)
 
 
@@ -179,33 +179,42 @@ def test_Piece_possible_moves_King_and_Pawn():
     board = Board([king,pawn])
     assert king.possible_moves(board) == set(map(Square,[(3,2), (3,3), (4,1), (4,3), (5,2), (5,3)]))
 
-
-# TODO this sems to be a board test, not a piece test
-@pytest.mark.skip(reason="not implemented")
 def test_Piece_possible_moves_castling(castling_board):
-    king_w = castling_board[Square('e',1)]
-    king_b = castling_board[Square('e',8)]
+    king_w = castling_board[Square('e1')]
+    king_b = castling_board[Square('e8')]
+    assert king_w.possible_moves(castling_board) == set(map(Square, ['c1', 'd1', 'f1', 'g1']))
+    assert king_b.possible_moves(castling_board) == set(map(Square, ['c8', 'd8', 'f8', 'g8']))
 
-    new_board = castling_board.make_move(king_w, Square('a',1))
-    assert new_board[Square('a',1)] == King()
-    assert new_board[Square('b',1)] == Rook()
+def test_Piece_possible_moves_castling_touched(castling_board):
+    king_w = castling_board[Square('e1')]
+    king_w.touched = True
+    king_b = castling_board[Square('e8')]
+    rook_b = castling_board[Square('a8')]
+    rook_b.touched = True
+    assert king_w.possible_moves(castling_board) == set(map(Square, ['d1', 'f1']))
+    assert king_b.possible_moves(castling_board) == set(map(Square, ['d8', 'f8', 'g8']))
 
-    new_board = castling_board.make_move(king_w, Square('h',1))
-    assert new_board[Square('h',1)] == King()
-    assert new_board[Square('g',1)] == Rook()
+def test_Piece_possible_moves_castling_blocked(castling_board):
+    king_w = castling_board[Square('e1')]
+    castling_board.add(Piece(Knight(), White, Square('b1')))
+    assert king_w.possible_moves(castling_board) == set(map(Square, ['d1', 'f1', 'g1']))
 
-    new_board = castling_board.make_move(king_b, Square('a',8))
-    assert new_board[Square('a',8)] == King()
-    assert new_board[Square('b',8)] == Rook()
-
-    new_board = castling_board.make_move(king_b, Square('h',8))
-    assert new_board[Square('h',8)] == King()
-    assert new_board[Square('g',8)] == Rook()
-
-    new_board = castling_board.make_move(king_w, Square('d',1))
-    with pytest.raises(IllegalMoveError):
-        castling_board.make_move(new_board[Square('d',1)], Square('a',1))
-
+def test_Piece_possible_moves_castling_check(castling_board):
+    board = Board(castling_board.pieces())
+    board.remove(castling_board[Square('b2')])
+    board.add(Piece(Rook(), Black, Square('b2')))
+    king_w = board[Square('e1')]
+    assert king_w.possible_moves(board) == set(map(Square, ['c1', 'd1', 'f1', 'g1']))
+    board = Board(castling_board.pieces())
+    board.remove(castling_board[Square('d2')])
+    board.add(Piece(Rook(), Black, Square('d3')))
+    king_w = board[Square('e1')]
+    assert king_w.possible_moves(board) == set(map(Square, ['f1', 'g1']))
+    board = Board(castling_board.pieces())
+    board.remove(castling_board[Square('e2')])
+    board.add(Piece(Rook(), Black, Square('e3')))
+    king_w = board[Square('e1')]
+    assert king_w.possible_moves(board) == set(map(Square, ['d1', 'f1']))
 
 def test_Piece_move_to():
     pos = Square('d', 5)
@@ -216,6 +225,8 @@ def test_Piece_move_to():
     assert new_piece.position == target
     assert piece_ != new_piece
     assert piece_.position == pos
+    assert piece_.touched == False
+    assert new_piece.touched == True
 
 def test_Piece_move_to_illegal():
     pos = Square('d', 5)
@@ -223,6 +234,7 @@ def test_Piece_move_to_illegal():
     target = pos+(0,3)
     with pytest.raises(IllegalMoveError):
         king.move_to(target, Board([king]))
+    king.move_to(target)
 
 
 def test_King_init():
@@ -237,12 +249,6 @@ def test_King_legal_moves():
     assert king.legal_moves(Square(4,4)) == set([(3,4), (5,4), (4,3), (4,5), (3,3), (5,5), (3,5), (5,3)])
     assert king.legal_moves(Square(0,4)) == set([(0,3), (0,5), (1,3), (1,4), (1,5)])
     assert king.legal_moves(Square(7,7)) == set([(7,6), (6,7), (6,6)])
-
-@pytest.mark.skip(reason="not implemented")
-def test_King_legal_moves_castling(castling_board):
-    # even though some Squares are blocked by other pices, the AbstractPiece does not care about this
-    assert King().legal_moves(Square('e',1), board=castling_board) == set(map(Square, [('a',1), ('h',1), ('d',1), ('f',1), ('d',2), ('e',2), ('f',2)]))
-    assert King().legal_moves(Square('e',8), board=castling_board) == set(map(Square, [('a',8), ('h',8), ('d',8), ('f',8), ('d',7), ('e',7), ('f',7)]))
 
 
 def test_Queen_init():

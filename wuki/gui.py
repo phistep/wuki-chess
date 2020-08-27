@@ -20,9 +20,9 @@ class GUI(wx.Frame):
         self.last_move_squares = []
         self.move_source = None
         self.game = Game([])
-        self.RenderBoard()
+        self.SetupBoard()
 
-    def RenderBoard(self):
+    def SetupBoard(self):
         """Render buttons forming the current board position"""
         board = self.game.boards[-1]
         panel = wx.Panel(self)
@@ -72,6 +72,11 @@ class GUI(wx.Frame):
         else:
             button.SetLabel('')
             button.Disable()
+
+    def UpdateBoard(self):
+        """Call UpdateButton on all self.buttons"""
+        for button in self.buttons:
+            self.UpdateButton(button)
 
     def ResetButtonBg(self, position):
         """Reset a buttons background color, i.e. remove any highlighting and
@@ -139,10 +144,9 @@ class GUI(wx.Frame):
         :param Square target: the target Square
         """
         self.game.make_move(source, target)
-        self.UpdateButton(source.position)
-        self.UpdateButton(target)
         self.Highlight(False)
         self.EnablePlayer()
+        self.UpdateBoard()
 
     def MakeAIMove(self):
         """Let the AI make a move"""

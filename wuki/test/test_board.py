@@ -5,6 +5,8 @@ from ..board import Color, White, Black, Square, BOARD_LEN, within_board, Board
 from ..piece import Piece, Queen, King, Pawn, Rook
 from ..exceptions import IllegalMoveError
 
+from .test_piece import castling_board
+
 def test_Color_constants():
     white = Color(Color.WHITE)
     black = Color(Color.BLACK)
@@ -364,6 +366,36 @@ def test_Board_make_move_check():
     attacker = Piece(Queen(), Black, Square('b',8))
     board = Board([king,attacker])
     board.make_move(attacker, Square('a',8))
+
+def test_Board_make_move_castling(castling_board):
+    king_w = castling_board[Square('e1')]
+    king_b = castling_board[Square('e8')]
+
+    new_board = castling_board.make_move(king_w, Square('c1'))
+    assert new_board[Square('c1')] == King()
+    assert new_board[Square('d1')] == Rook()
+    assert Square('a1') not in new_board
+
+    new_board = castling_board.make_move(king_w, Square('g1'))
+    assert new_board[Square('g1')] == King()
+    assert new_board[Square('f1')] == Rook()
+    assert Square('h1') not in new_board
+
+    new_board = castling_board.make_move(king_b, Square('c8'))
+    assert new_board[Square('c8')] == King()
+    assert new_board[Square('d8')] == Rook()
+    assert Square('a8') not in new_board
+
+    new_board = castling_board.make_move(king_b, Square('g8'))
+    assert new_board[Square('g8')] == King()
+    assert new_board[Square('f8')] == Rook()
+    assert Square('h8') not in new_board
+
+    new_board = castling_board.make_move(king_w, Square('d',1))
+    new_board = new_board.make_move(new_board[Square('d',1)], Square('e',1))
+    with pytest.raises(IllegalMoveError):
+        castling_board.make_move(new_board[Square('e',1)], Square('a',1))
+
 
 def test_Board_possible_moves():
     # we need kings out of check to get possible moves
