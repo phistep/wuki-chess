@@ -1,3 +1,26 @@
+"""
+GUI
+---
+Using the optional dependency `wxPython <https://wxpython.org>`_, |wuki| comes
+with a minimal GUI that should work on all major operating systems (Linux,
+macOS and Windows).
+Run it from the commandline:
+
+.. code-block:: bash
+
+    PYTHONPATH=. bin/wuki-gui
+
+It takes no arguments.
+
+For now you can only play against the AI and you always play white.
+Select a piece to move by clicking on it, then select a square to move to.
+You will only be able to make legal moves.
+When a piece is selected for movement, possible moves are highlighted in
+yellow.
+If you want to cancel the move and select another piece, just click on the
+selected piece again to deselect it.
+The last move the AI made is highlighted in blue.
+"""
 import wx
 from .game import Game
 from .board import BOARD_LEN, Square, Black, White

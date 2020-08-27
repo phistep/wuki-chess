@@ -1,7 +1,16 @@
+"""
+wuki.game
+----------------
+
+This module includes the :class:`Game` class, which describes the highest
+level of description for a game of chess.
+"""
+
+from typing import Union, Tuple
 import re
 
 from . import piece
-from .board import White, Black, Square, Board
+from .board import Color, White, Black, Square, Board
 from .exceptions import WrongPlayerError, MoveParseError, AmbigousMoveError
 from .exceptions import CheckException, CheckmateException, DrawException
 
@@ -9,16 +18,24 @@ from .exceptions import CheckException, CheckmateException, DrawException
 class Game:
     """Holds all information about a game.
 
-    A list of moves in Algebraic Notation is parsed and for each move the
+    A list of moves in |SAN|_ is parsed and for each move the
     resulting board position is generated. A new move can be added by
-    callgin `.make_move`.
+    calling :meth:`.make_move`.
     """
+    #: :type: Color
+    #:
+    #: The player who has the first move.
+    #: In chess, this is white.
     FIRST_PLAYER = White
 
     def __init__(self, moves):
-        """Create a game from an array of [algebraic notation](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)) moves
+        """Create a game from an array of |SAN|_ moves
 
-        :param moves: list of single moves in Algebaric Notation
+        :param List[str] moves: list of strings with single moves in |SAN|_
+            fromat
+
+        .. automethod:: __len__
+        .. automethod:: __str__
         """
 
         initial_pieces = []
@@ -34,9 +51,20 @@ class Game:
                 piece.Piece(piece.Rook(),   color, Square('h', row)),
             ])
             initial_pieces.extend([piece.Piece(piece.Pawn(color), color, Square(col, row+direction)) for col in "abcdefgh"])
+        #: :type: List[Board]
+        #:
+        #: The list of all board positions that have been played in this game,
+        #: in chronological order.
         self.boards = [Board(initial_pieces)]
 
+        #: :type: Color
+        #:
+        #: The color of the current player. Is initialized to :attr:`FIRST_PLAYER`
         self.current_player = self.FIRST_PLAYER
+
+        #: :type: List[Tuple[piece.Piece, Square]]
+        #:
+        #: The moves that have been played, in chronological order.
         self.moves = list()
         for move in moves:
             self.make_move(move)
@@ -44,8 +72,14 @@ class Game:
     def __repr__(self):
         return f"<Game moves={len(self.moves)} current_player={self.current_player}>"
 
-    def move_str(self, move):
-        """Format a move tuple (Piece, Square target) into `a3Qa8`."""
+    def move_str(self, move:Tuple[piece.Piece, Square]) -> str:
+        """Format a move tuple ``(piece, target)`` into :samp:`a3Qa8`.
+
+        :param move: tuple with a source :class:`~.piece.Piece` and a target
+            :class:`.Square`
+        
+        :returns: a string in |SAN|_ describing the move
+        """
         piece_, target = move
         if piece_.piece == piece.King():
             if piece_.position.x - target.x == 2:
@@ -56,8 +90,8 @@ class Game:
                 return '0-0'
         return '{}{}{}'.format(piece_.position, piece_.letter.upper(), target)
 
-    def __str__(self):
-        """Algebraic notation of the whole game"""
+    def __str__(self) -> str:
+        """:returns: |SAN|_ of the whole game."""
         moves = [self.move_str(m) for m in self.moves]
         # unfortunately, this does not output a single white move
         #return '\n'.join(w+' '+b for w, b in zip(moves[0::2], moves[1::2]))+'\n'
@@ -69,25 +103,32 @@ class Game:
             rounds.append(round_)
         return '\n'.join(rounds)+'\n'
 
-    def __len__(self):
-        """The length of the game is the number of moves that have been played"""
+    def __len__(self) -> int:
+        """:returns: The length of the game is the number of moves that have been played."""
         return len(self.moves)
 
-    def parse_move(self, move, current_player=None, board=None):
-        """Parse a move string in Algebraic Notation and returns the piece to
-        be moved and the target squere it should be moved to.
+    def parse_move(self, move:str, current_player:Color=None, board:Board=None) -> Tuple[piece.Piece, Square]:
+        """Parse a move string in |SAN|_ and returns the source
+        :class:`~piece.Piece` to be moved and the target :class:`Square` it
+        should be moved to.
 
-        :param str move: Move in the format
-            `<source_piece>?<source_file>?<source_row>?<piece>?<target_file><target_row>`
-            `<source_…>` information may be absent or partial source
-            `<piece`> missing means a pawn was moved, capital letter!
-            e.g. 'd3Qd5' or 'ed5'
-        :param Color current_player: Which player makes the move. Important to
-            determining source square
+        A move in |SAN| has the following syntax:
+
+            :samp:`[{<source-piece>}][{<source-file>}][{<source-rank>}][{<piece>}]{<target-file>}{<target-rank>}`.
+
+            - :samp:`{<source-…>}` information may be absent or partial.
+            - :samp:`{<piece>}` needs to be a capital letter. Missing means a pawn was moved.
+
+        e.g. :samp:`d3Qd5` or :samp:`ed5`.
+
+        :param move: Move in the |SAN|_ format
+        :param current_player: which player makes the move. Important to
+            determining source square, defaults to
         :param Board board: On which board to look for the source square:
 
-        :returns Piece piece: piece to be moved
-        :returns Square target: target square to be moved to
+        :returns:
+            - **source** (:class:`~piece.Piece`) -- the piece to be moved
+            - **target** (:class:`Square`) -- the square the piece is to be moved to
 
         :raises MoveParseError: when move is not in the correct format
         """
@@ -151,14 +192,13 @@ class Game:
             raise MoveParseError("Color of piece at source square does not match current player", move)
         return piece_, target
 
-    def make_move(self, piece, target=None):
+    def make_move(self, piece:Union[piece.Piece,str], target:Square=None):
         """Move on the current board.
 
-        :param Piece piece: the piece that is supposed to be moved. It includes
-            its position on the board.
-            Can also be a string with a move "a1Qa6", then the target parameter
-            has to be ommited
-        :param Square target: the square the piece to be moved to
+        :param piece: the piece that is supposed to be moved. It includes
+            its position on the board; can also be a string with a move
+            :samp:`a1Qa6`, then the ``target`` parameter has to be ommited
+        :param target: the square the piece to be moved to
 
         :raises IllegalMoveError: when move cannot be made
         :raises WrongPlayerError: when the color of the pieces is not the one
@@ -182,7 +222,7 @@ class Game:
         self.moves.append((piece, target))
         self.current_player = ~self.current_player
 
-    def undo(self, n=1):
+    def undo(self, n:int=1):
         """Undo the last move
 
         :param n: how many moves to undo
@@ -192,28 +232,32 @@ class Game:
             del self.moves[-n:]
             self.current_player = self.current_player if n%2==0 else ~self.current_player
 
-    def print_board(self, board=None, **kwargs):
+    def print_board(self, board:Board=None, **kwargs):
         """Print a board or the current board.
 
         :param board: a board print, defaults to the current board
-        :param **kwargs: keyword arguments are directly passed to Board.print()
+        :param \**kwargs: keyword arguments are directly passed to
+            :meth:`.Board.print()`
         """
         if board is None:
             board = self.boards[-1]
         board.print(**kwargs)
 
-    def check_state(self, player=None):
+    def check_state(self, player:Color=None):
         """Checks the current board for a special game state and raises an
         exception if anything unusual is going on.
 
-        :param player: the player to check for
+        :param player: the player to check for, defaults to
+            :attr:`current_player`
 
-        :raises GameOverException: When the game is over. The .winner attribute
-            is either White, Black or None for remis. This exception also comes
-            in CheckmateException, WhiteWinsException, BlackWinsException and
-            DrawException flavors.
-        :raises CheckException: When the current color is under check. The
-            .player attribute is either Black or White.
+        :raises GameOverException: When the game is over. The
+            :attr:`~.GameOverException.winner` attribute is either
+            :data:`~.board.White`, :data:`~.board.Black` or :py:data:`None` for
+            remis. This exception also comes in :exc:`.CheckmateException` and
+            :exc:`.DrawException` flavors.
+        :raises CheckException: When the current player is under check. The
+            :attr:`~.exception.CheckmateException.player` attribute is either
+            :data:`~.board.Black` or :data:`~.board.White`.
         """
         if player is None:
             player = self.current_player

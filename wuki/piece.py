@@ -286,7 +286,9 @@ class Pawn(AbstractPiece):
         return hash((self.name, self.color))
 
     def legal_moves(self, position, board, only_attacked=False):
-        """:param bool only_attacked: outputs only the attacked squares which the
+        """
+        :param bool only_attacked:
+            outputs only the attacked squares which the
             pawn could capture and not the ones it could move to (for all other
             pieces the two sets are idential)
         """

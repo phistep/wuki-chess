@@ -1,18 +1,57 @@
+"""
+wuki.board
+----------------
+
+This module includes classes that make up a board:
+
+    - :class:`Color` categorizes players, as well as pieces and squares on the
+        board
+    - :class:`Square` abstracts a position on the board and enables users to
+        enter coordinates in a chess friendly manner
+    - :class:`Board` manages the state of one board position as well as
+        generating possible moves
+"""
+from typing import Union, Tuple, Set, List
+
 from math import sqrt
 
 from . import piece as pc
 from .exceptions import IllegalMoveError
 
+#: :type: int
+#:
+#: The number of squares per side of a board.
 BOARD_LEN = 8
 
 class Color:
-    """Collection of convenience functions for piece colors"""
+    """Collection of convenience functions for piece, square, player colors.
+
+    .. automethod:: __invert__
+    """
+    #: Constant value internally representing white.
     WHITE = 0
+    #: Constant value internally representing black.
     BLACK = 1
 
     def __init__(self, color):
+        #: Internal representation of the color.
+        #: Should either be :attr:`WHITE` or :attr:`BLACK`.
         self.color = color
+
+        #: :type: int
+        #:
+        #: The direction a player of this color plays forward.
+        #: This is especially important for pawns, which can only move forward.
+        #: Can either be `+1` or `-1`.
         self.direction = [+1,-1][color]
+
+        #: :type: int
+        #:
+        #: Internal representation of the "home :term:`rank<Rank>`" of a player of
+        #: this color.
+        #: Whereas chess terminology counts ranks, i.e., rows from 1,
+        #: |wuki|\ s internal coordinate system starts from 0, so this is 0
+        #: (rank 1) for white and 7 (rank 8) for black.
         self.home_y = [0,BOARD_LEN-1][color]
 
     def __str__(self):
@@ -26,37 +65,56 @@ class Color:
         return self.color
 
     def __invert__(self):
-        """ ~ operator, returns opposite color"""
+        """`~` operator. Get the inverse of a color.
+
+        :returns: the opposite color
+        :rtype: Color
+        """
         return Color(1-self.color)
 
     def __eq__(self, other):
         return self.color == other.color
 
+
+#: :type: Color
+#:
+#: The primary instance of the white color.
+#: Use this to compare against colors or set up :class:`Piece` with.
+#: Think of it like `True` or `False` are primary instances of `bool`.
 White = Color(Color.WHITE)
+#: :type: Color
+#:
+#: The primary instance of the black color.
+#: Use this to set up :class:`Piece` with.
+#: Think of it like `True` or `False` are primary instances of `bool`.
 Black = Color(Color.BLACK)
 
 
 class Square:
     """A square on the board."""
 
-    def __init__(self, x, y=None):
-        f"""A Square can be instanciated from a pair of coordinates either in
+    def __init__(self, x:Union[str, int, Tuple[int,int], Tuple[str,int]], y:int=None):
+        """A Square can be instanciated from a pair of coordinates either in
 
-        - numerical form (x, y) where x and y should lie between 0 and {BOARD_LEN-1},
-            0 being the white home row
+        - numerical form (x, y) where x and y should lie between 0 and :data:`BOARD_LEN`-1,
+          0 being the white home row
         - alphanumeric form (file, rank) with file being the column 'a' through 'h'
-            and rank bewing the row between 1 and {BOARD_LEN}, 1 being the white
-            home row
+          and rank bewing the row between 1 and :data:`BOARD_LEN`, 1 being the white
+          home row
+        - alphanumeric string "fr", the same as the alphanumeric tuple, just in
+          one string
+        - another :class:`Square` object
 
         No bounds check is made automatically, illegal squares can be instanciated,
-        one has to manually check with Square.within_board.
+        one has to manually check with :meth:`within_board()`
 
-        :param x: either a tuple of coordinates as described above or a vertical coordinate
-        :param y: optional if a tuple is passed in x, otherwixze the horizontal coordinate 
+        :param x: either a tuple of coordinates as described above or a vertical
+            coordinate
+        :param y: optional if a tuple is passed in x, otherwise the horizontal
+            coordinate 
+
+        .. automethod:: __add__
         """
-        # TODO bounds check?
-        #      use __new__ tow return a None object if not within bounds?
-        # TODO support two piece string instancation ('b5') and comparison
         self._diagonals = None
 
         if isinstance(x, Square):
@@ -94,41 +152,46 @@ class Square:
             raise TypeError(f"Can only compare Square with Square or 2-tuple, not {type(other)}")
         return self.x == other.x and self.y == other.y
 
-    def __add__(self, other):
-        """You can only add a tuple of coordinate offsets, not another Square"""
+    def __add__(self, other:Tuple[int,int]):
+        """Get new coordintes from this Square and the provided offset.
+
+        You can only add a tuple of coordinate offsets, not another Square.
+
+        :param other: a tuple with :samp:`(dx, dy)` offsets
+        """
         if not len(other) == 2:
             raise TypeError("Only a tuple of length two can be added to a Square")
         return Square(self.x+other[0], self.y+other[1])
 
     @property
-    def file(self):
+    def file(self) -> str:
         """The file/column of the square."""
         return "abcdefgh"[self.x]
     column = file
 
     @property
-    def rank(self):
+    def rank(self) -> int:
         """The rank/row of the square."""
         return self.y + 1
     row = rank
 
-    def file_rank(self):
+    def file_rank(self) -> Tuple[str,int]:
         """Returns a tuple of (file, rank)/(column, row) representation of the coordinates."""
         return (self.file, self.rank)
 
-    def coords(self):
+    def coords(self) -> Tuple[int,int]:
         "Return coordinate tuple (x,y)"
         return self.x, self.y
 
-    def within_board(self):
+    def within_board(self) -> bool:
         """Wether a position is within the bounds of the board"""
         return 0 <= self.x < BOARD_LEN and 0 <= self.y < BOARD_LEN
 
-    def color(self):
+    def color(self) -> Color:
         """Returns the color of the square on the board. (0,0)/a1 is Black."""
         return Color((self.x+1)%2 ^ self.y%2)
 
-    def diagonals(self):
+    def diagonals(self) -> set:
         """Gives all diagonally connected positions within the board (including self)"""
         if self._diagonals is None:
             rising   = [Square(self.x+i, self.y+i) for i in range(BOARD_LEN)]
@@ -138,19 +201,19 @@ class Square:
             self._diagonals = set(filter(within_board, rising+falling))
         return self._diagonals
 
-    def orthogonals(self):
+    def orthogonals(self) -> set:
         """Gives all orthogonally connected positions within the board (including self)"""
         horizontal = [Square(x, self.y) for x in range(BOARD_LEN)]
         vertical =   [Square(self.x, y) for y in range(BOARD_LEN)]
         return set(horizontal + vertical)
 
-    def dist(self, other):
+    def dist(self, other) -> float:
         """Euclidean distance between this square and another.
         
         :param Square other: the square to measure distance to. Can also be
             provided as 2-tuple, which gets casted to Square
 
-        :returns float dist: euclidean distance sqrt(dx**2 + dy**2)
+        :returns: euclidean distance :math:`\sqrt{\Delta x^2 + \Delta y^2)}`
         """
         if isinstance(other, tuple) and len(other) == 2:
             other = Square(other)
@@ -158,7 +221,7 @@ class Square:
             raise TypeError("Distance has to be between two Squares or a 2-tuple")
         return sqrt( (self.x-other.x)**2 + (self.y-other.y)**2 )
 
-    def blocked_by(self, mover, blocker):
+    def blocked_by(self, mover, blocker) -> bool:
         """Check if `blocker` blocks `mover` from moving to `self` in a streight
         line.
 
@@ -167,7 +230,7 @@ class Square:
         :param Square blocker: position which has a piece that could block the
             move
 
-        :returns bool blocked: wether blocker blocks mover from moving to self
+        :returns: wether blocker blocks mover from moving to self
         """
         # unfortunately, this easy solution does _not_ work
         #return mover.dist(self) > mover.dist(blocker)
@@ -200,16 +263,23 @@ def within_board(x, y=None):
 class Board:
     """Stores a board position.
 
-    Adding and removing of pieces is done via .add()/.remove(), to move piecese
-    around according to the rules of the game, use .make_move(). One can
-    iterate over the hole board using iter() or over its pieces by using
-    iter(Board.pieces()). Supports indexing board[Square(x,y)] and member
-    checking Piece in Board.
+    Adding and removing of pieces is done via :meth:`.add()`/:meth:`.remove()`,
+    to move piecese around according to the rules of the game, use
+    :meth:`.make_move()`. One can iterate over the hole board using
+    :py:func:`iter()` or over its pieces by using :code:`iter(Board.pieces())`.
+    Supports indexing :code:`board[Square(x,y)]` and member checking
+    :code:`Piece in Board`.
     """
-    def __init__(self, pieces, captured=None):
-        """Build the board from a list of pieces
+    def __init__(self, pieces:list, captured:list=None):
+        """Build the board from a list of pieces.
 
-        :param pieces: list of pieces on the board
+        :param List[Piece] pieces: list of pieces on the board
+        :param List[Piece] captured: list of captured pieces, if any
+
+        .. automethod:: __len__
+        .. automethod:: __getitem__
+        .. automethod:: __contains__
+        .. automethod:: __iter__
         """
         # TODO check if two pieces are on the same square
         # TODO check if pieces are within board
@@ -219,6 +289,9 @@ class Board:
             self.index[piece.position] = piece
         if captured:
             # make a deep copy because lists are mutable
+            #: A dictionary with the keys :data:`White` and :data:`Black`,
+            #: containging lists of :class:`.pieces.Piece`\ s that have been
+            #: :term:`captured <Capture>`.
             self.captured = {White:captured[White].copy(), Black:captured[Black].copy()}
         else:
             self.captured = {White:set(), Black:set()}
@@ -229,23 +302,30 @@ class Board:
     def __str__(self):
         return str(self._pieces)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns number of pieces still on the board."""
         return len(self._pieces)
 
     def __eq__(self, other):
         return self._pieces == other._pieces and self.captured == other.captured
 
-    def __getitem__(self, key):
-        """Returns piece on the key square"""
+    def __getitem__(self, key:Square):
+        """Returns piece on square
+
+        :param square: the sqaure to retrieve a piece from
+
+        :returns: the piece on the square
+
+        :raises KeyError: when the square is empty
+        """
         if not isinstance(key, Square):
             key = Square(key)
         return self.index[key]
 
-    def __contains__(self, item):
-        """If Board is checked against a Square, it will return True if there's
-        a piece on the square, False otherwise. If checked against a tuple of
-        (AbstractPiece, Color) it returns true if a piece of that kind and color
+    def __contains__(self, item) -> bool:
+        """If Board is checked against a :class:`Square`, it will return `True` if there's
+        a piece on the square, `False` otherwise. If checked against a tuple of
+        (:class:`~.piece.AbstractPiece`, :class:`Color`) it returns true if a piece of that kind and color
         is still on the board.
         """
         if isinstance(item, tuple) and len(item) == 2:
@@ -263,8 +343,9 @@ class Board:
 
     def __iter__(self):
         """Iterating over the board object returns every square of the board
-        and the pieces that's on it. None if the square is empty.
-        :returns square, piece:
+        and the piece that's on it. None if the square is empty. Calling 
+        :py:func:`next()` yields a
+        :py:class:`~typing.Tuple` [:class:`Square`, :class:`~piece.Piece`].
         """
         self._iter = Square(-1,0)
         return self
@@ -283,7 +364,7 @@ class Board:
 
         :param piece: the piece to be removed from the board
 
-        :returns piece: the piece that was removed
+        :returns: the piece that was removed
 
         :raises KeyError: if the piece is not on the board
         """
@@ -299,7 +380,7 @@ class Board:
 
         :param piece: the piece to be marked as captured
 
-        :returns piece: the captured piece
+        :returns: the captured piece
         """
         self.remove(piece)
         # This disables comparisons
@@ -312,7 +393,7 @@ class Board:
         
         :param piece: the piece to be added
 
-        :returns pieces: the current list of pieces after the new one was added
+        :returns: the current list of pieces after the new one was added
 
         :raises ValueError: if the target square already has a piece on it
         """
@@ -324,10 +405,11 @@ class Board:
         assert self.index[piece.position] == piece
         return self.pieces()
 
-    def pieces(self, kind=None, color=None):
+    def pieces(self, kind=None, color:Color=None) -> set:
         """Returns a list of all pieces on the board. If kind is given (as an
-        instance of an Abstract(Piece)) only the pieces of that kind are returned.
-        If color is given, only pieces of that color are returned.
+        instance of an :class:`.piece.AbstractPiece` or :class:`.piece.Piece`)
+        only the pieces of that kind are returned. If color is given, only
+        pieces of that color are returned.
 
         :param kind: If a Piece or AbstractPiece is given, only pieces of that
             kind are returned
@@ -337,15 +419,16 @@ class Board:
         """
         return set([p for p in self._pieces if (p == kind if kind is not None else True) and (p.color == color if color is not None else True)])
 
-    def make_move(self, piece, target, color=None):
+    def make_move(self, piece, target:Square):
         """Move on the current board and return the new board. This does not
         mutate the current object!
 
         :param Piece piece: the Piece that is supposed to be moved. It includes its
             position on the board
-        :param Square target: the quare where the pieces is to be moved to
+        :param target: the quare where the pieces is to be moved to
 
-        :returns Board new_board: The new board after the move
+        :returns: The new board after the move
+        :rtype: Board
 
         :raises IllegalMoveError: when move cannot be made
         """
@@ -415,47 +498,46 @@ class Board:
             for move in possible_moves.copy():
                 if self.make_move(*move).is_check(player):
                     possible_moves.discard(move)
-        possible_moves
         return possible_moves
 
-    def is_check(self, player):
-        """Returns True if player is in check.
+    def is_check(self, player:Color) -> bool:
+        """Returns `True` if player is in check.
 
-        :param Color player: the player to check for
+        :param player: the player to check for
 
-        :returns: True if player is in check, False otherwise
+        :returns: `True` if `player` is in check, `False` otherwise
         """
         king = next(iter(self.pieces(kind=pc.King(), color=player)))
         return king.position in {target for _, target in self.possible_moves(~player, give_check=True)}
 
-    def is_stalemate(self, player):
-        """Returns True if player is stalemate but not checkmate. I.e. can not
+    def is_stalemate(self, player:Color) -> bool:
+        """Returns `True` if player is stalemate but not checkmate. I.e. can not
         move anymore but is not in check
 
-        :param Color player: the player to check for
+        :param player: the player to check for
 
-        :returns: True if player is in stalemate, False otherwise
+        :returns: `True` if `player` is in stalemate, `False` otherwise
         """
         return self.possible_moves(player) == set() and not self.is_check(player)
 
-    def is_checkmate(self, player):
-        """Returns True if player is checkmate.
+    def is_checkmate(self, player:Color) -> bool:
+        """Returns `True` if player is checkmate.
 
-        :param Color player: the player to check for
+        :param player: the player to check for
 
-        :returns: True if player is in checkmate, False otherwise
+        :returns: `True` if `player` is in checkmate, `False` otherwise
         """
         return self.possible_moves(player) == set() and self.is_check(player)
 
-    def print(self, unicode=True, color=True, mark=[], upside_down=False):
+    def print(self, unicode:bool=True, color:bool=True, mark:List[Square]=[], upside_down:bool=False):
         """Print the board
 
-        :param bool unicode: use unicode symbols
-        :param bool color: wether to use xterm-265color control sequences for
+        :param unicode: use unicode symbols
+        :param color: wether to use xterm-265color control sequences for
             foreground-on-background coloring of the board
-        :param List[Sqaure] mark: list of Sqaures to be marked (drawn in a
+        :param mark: list of Sqaures to be marked (drawn in a
             shaded color)
-        :param bool upside_down: wether to print upside down (for black to see
+        :param upside_down: wether to print upside down (for black to see
             it from their perspecitve)
         """
         def colored_symbol(square, mark=[]):

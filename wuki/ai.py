@@ -41,7 +41,7 @@ class WukiAI:
     def evaluate_board(self, board):
         """Evaluate a board position.
 
-        It calls all self.eval_ functions and adds up their individual scores.
+        It calls all ``self.eval_`` functions and adds up their individual scores.
 
         :param Board board: the board to evaluate.
 

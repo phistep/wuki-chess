@@ -20,7 +20,16 @@ class WrongPlayerError(Exception):
 class GameOverException(Exception):
     """The game is over."""
     def __init__(self, winner, reason='checkmate'):
+        #: :type: Color
+        #:
+        #: The color of the winning party
         self.winner = winner
+
+        #: :type: str
+        #:
+        #: The reason points out why the game ended. For example a checkmate
+        #: by one of the players, a draw where one player cannot move anymore,
+        #: etc.
         self.reason = reason
 
 class CheckmateException(GameOverException):
